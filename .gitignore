@@ -47,6 +47,10 @@ Thumbs.db
 # Hardhat config backups
 /blockchain/hardhat.config.cjs.backup
 
+
+
+
+
 # =========================================
 # AI / PYTHON
 # =========================================
