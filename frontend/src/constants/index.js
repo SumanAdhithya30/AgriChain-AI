@@ -20,6 +20,12 @@ export const REGISTRY_CONTRACT_ABI = [
           "internalType": "enum RegistryContract.UserRole",
           "name": "role",
           "type": "uint8"
+        },
+        {
+          "indexed": false,
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
         }
       ],
       "name": "UserRegistered",
@@ -31,6 +37,33 @@ export const REGISTRY_CONTRACT_ABI = [
           "internalType": "enum RegistryContract.UserRole",
           "name": "_role",
           "type": "uint8"
+        },
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "location",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "contactInfo",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "licenseOrId",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct RegistryContract.UserProfile",
+          "name": "_profile",
+          "type": "tuple"
         }
       ],
       "name": "registerUser",
@@ -62,6 +95,33 @@ export const REGISTRY_CONTRACT_ABI = [
           "internalType": "bool",
           "name": "isRegistered",
           "type": "bool"
+        },
+        {
+          "components": [
+            {
+              "internalType": "string",
+              "name": "name",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "location",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "contactInfo",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "licenseOrId",
+              "type": "string"
+            }
+          ],
+          "internalType": "struct RegistryContract.UserProfile",
+          "name": "profile",
+          "type": "tuple"
         }
       ],
       "stateMutability": "view",

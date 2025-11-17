@@ -5,14 +5,28 @@ import { ethers } from 'ethers';
 import { REGISTRY_CONTRACT_ADDRESS, REGISTRY_CONTRACT_ABI } from '../../constants';
 
 export default function RegisterPage() {
-    // State to hold the selected role
-    const [selectedRole, setSelectedRole] = useState(1); // Default to Farmer (1)
+    // NEW: State for all profile fields
+    const [profile, setProfile] = useState({
+        name: '',
+        location: '',
+        contactInfo: '',
+        licenseOrId: ''
+    });
+    const [selectedRole, setSelectedRole] = useState(1); // Default to Farmer
     const [isLoading, setIsLoading] = useState(false);
     const [feedback, setFeedback] = useState("");
 
+    // A helper function to handle input changes for the profile
+    const handleProfileChange = (e) => {
+        setProfile({
+            ...profile,
+            [e.target.name]: e.target.value
+        });
+    };
+
     const handleRegister = async () => {
-        if (!selectedRole) {
-            setFeedback("Please select a role.");
+        if (!profile.name || !profile.location || !selectedRole) {
+            setFeedback("Please fill out at least Name and Location.");
             return;
         }
         if (typeof window.ethereum === 'undefined') {
@@ -24,35 +38,31 @@ export default function RegisterPage() {
         setFeedback("Preparing transaction... Please confirm in MetaMask.");
 
         try {
-            // Get the provider and signer from MetaMask
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
 
-            // Create a new instance of the contract
             const registryContract = new ethers.Contract(
                 REGISTRY_CONTRACT_ADDRESS,
                 REGISTRY_CONTRACT_ABI,
                 signer
             );
 
-            // Call the registerUser function on the contract
-            const tx = await registryContract.registerUser(selectedRole);
+            // UPDATED: Pass the role and the entire profile object
+            const tx = await registryContract.registerUser(selectedRole, profile);
             
             setFeedback("Transaction sent! Waiting for confirmation...");
-            
-            // Wait for the transaction to be mined
             await tx.wait();
             
-            setFeedback("Success! You have been registered on the blockchain.");
+            setFeedback(`Success! "${profile.name}" has been registered on the blockchain.`);
         } catch (error) {
             console.error("Registration failed:", error);
-            // Give a more user-friendly error message
-            if (error.code === 'ACTION_REJECTED') {
-                 setFeedback("Transaction rejected in MetaMask.");
-            } else if (error.message.includes("User is already registered.")) {
+            const reason = error.reason || "An error occurred during registration.";
+            if (reason.includes("User is already registered.")) {
                  setFeedback("Error: This wallet address is already registered.");
+            } else if (reason.includes("Name cannot be empty.")) {
+                setFeedback("Error: Name is a required field.");
             } else {
-                 setFeedback("An error occurred during registration.");
+                 setFeedback(`Error: ${reason}`);
             }
         } finally {
             setIsLoading(false);
@@ -61,34 +71,54 @@ export default function RegisterPage() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-900 text-white">
-            <div className="w-full max-w-md p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold text-center">Register Your Role</h1>
+            <div className="w-full max-w-2xl p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
+                <h1 className="text-3xl font-bold text-center">Register Your Profile</h1>
                 <p className="text-center text-gray-400">
-                    Choose your role on the AgriChain platform to get started.
+                    Create your identity on the AgriChain platform to get started.
                 </p>
 
-                <div className="space-y-2">
-                    <label htmlFor="role" className="text-sm font-medium">Select your role:</label>
-                    <select
-                        id="role"
-                        value={selectedRole}
-                        onChange={(e) => setSelectedRole(Number(e.target.value))}
-                        className="w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        disabled={isLoading}
-                    >
-                        {/* Note: Enum values from Solidity: FARMER=1, BUYER=2, LOGISTICS_PROVIDER=3 */}
-                        <option value={1}>Farmer</option>
-                        <option value={2}>Buyer</option>
-                        <option value={3}>Logistics Provider</option>
-                    </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Role Selection */}
+                    <div className="md:col-span-2">
+                        <label htmlFor="role" className="block text-sm font-medium">Select your role:</label>
+                        <select id="role" value={selectedRole} onChange={(e) => setSelectedRole(Number(e.target.value))} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" disabled={isLoading}>
+                            <option value={1}>Farmer</option>
+                            <option value={2}>Buyer</option>
+                            <option value={3}>Logistics Provider</option>
+                        </select>
+                    </div>
+                    
+                    {/* Name Input */}
+                    <div>
+                        <label htmlFor="name" className="block text-sm font-medium">Name / Company Name</label>
+                        <input id="name" name="name" type="text" value={profile.name} onChange={handleProfileChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., Green Valley Farms" disabled={isLoading} />
+                    </div>
+                    
+                    {/* Location Input */}
+                    <div>
+                        <label htmlFor="location" className="block text-sm font-medium">Location</label>
+                        <input id="location" name="location" type="text" value={profile.location} onChange={handleProfileChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., Nashik, Maharashtra" disabled={isLoading} />
+                    </div>
+
+                    {/* Contact Info Input */}
+                    <div>
+                        <label htmlFor="contactInfo" className="block text-sm font-medium">Contact Info (Website/Email)</label>
+                        <input id="contactInfo" name="contactInfo" type="text" value={profile.contactInfo} onChange={handleProfileChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., www.greenvalley.com" disabled={isLoading} />
+                    </div>
+
+                    {/* License Input */}
+                    <div>
+                        <label htmlFor="licenseOrId" className="block text-sm font-medium">Certification / Business ID</label>
+                        <input id="licenseOrId" name="licenseOrId" type="text" value={profile.licenseOrId} onChange={handleProfileChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., FSSAI #12345" disabled={isLoading} />
+                    </div>
                 </div>
                 
                 <button
                     onClick={handleRegister}
-                    className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-4 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500"
                     disabled={isLoading}
                 >
-                    {isLoading ? "Registering..." : "Register on Blockchain"}
+                    {isLoading ? "Registering..." : "Register Profile"}
                 </button>
 
                 {feedback && (

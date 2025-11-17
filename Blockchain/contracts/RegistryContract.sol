@@ -1,19 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/**
- * @title RegistryContract
- * @dev Manages user identities and roles for the AgriChain platform.
- * Allows users to register themselves with a specific role.
- */
- 
 contract RegistryContract {
 
-    //===========
-    // Data Types
-    //===========
-
-    // Define the possible roles for users on the platform.
     enum UserRole {
         UNREGISTERED,
         FARMER,
@@ -21,65 +10,41 @@ contract RegistryContract {
         LOGISTICS_PROVIDER
     }
 
-    // A structure to hold information about each registered user.
-    struct User {
-        address userAddress; // The user's unique wallet address.
-        UserRole role;       // The role assigned to the user.
-        bool isRegistered;   // A flag to quickly check if a user exists.
+    // NEW: A dedicated struct for detailed profile information.
+    struct UserProfile {
+        string name;         // Farm Name, Company Name, etc.
+        string location;     // City, State, etc.
+        string contactInfo;  // Email, website, etc.
+        string licenseOrId;  // Organic cert #, Business license #, etc.
     }
 
-    //===========
-    // State Variables
-    //===========
+    struct User {
+        address userAddress;
+        UserRole role;
+        bool isRegistered;
+        UserProfile profile; // This now holds all the user's details.
+    }
 
-    // A mapping from a user's wallet address to their User struct.
-    // This acts as our on-chain database of users.
-    // `public` makes it automatically readable from outside the contract.
     mapping(address => User) public users;
 
+    event UserRegistered(address indexed userAddress, UserRole role, string name);
 
-    //===========
-    // Events
-    //===========
-
-    // Emitted when a new user successfully registers.
-    // Events are crucial for the frontend to listen to blockchain activities.
-    event UserRegistered(address indexed userAddress, UserRole role);
-
-
-    //===========
-    // Functions
-    //===========
-
-    /**
-     * @dev Registers a new user on the AgriChain platform.
-     * The person calling the function (msg.sender) will be registered.
-     * @param _role The role the user wants to register as (FARMER, BUYER, etc.).
-     *
-     * Requirements:
-     * - The user must not already be registered.
-     * - The chosen role cannot be UNREGISTERED.
-     */
-    function registerUser(UserRole _role) external {
-        // `msg.sender` is a global variable in Solidity that holds
-        // the wallet address of the person calling the function.
+    // UPDATED: The function now accepts the UserProfile struct.
+    function registerUser(UserRole _role, UserProfile memory _profile) external {
         address caller = msg.sender;
 
-        // Requirement Check 1: Ensure the user is not already registered.
-        // `require` statements check for conditions. If false, the transaction fails.
         require(!users[caller].isRegistered, "User is already registered.");
-
-        // Requirement Check 2: Ensure the user chooses a valid role.
         require(_role != UserRole.UNREGISTERED, "Cannot register with an UNREGISTERED role.");
+        require(bytes(_profile.name).length > 0, "Name cannot be empty.");
+        require(bytes(_profile.location).length > 0, "Location cannot be empty.");
 
-        // If both checks pass, create and save the new user.
         users[caller] = User({
             userAddress: caller,
             role: _role,
-            isRegistered: true
+            isRegistered: true,
+            profile: _profile
         });
 
-        // Emit an event to notify the outside world (our dApp) that this happened.
-        emit UserRegistered(caller, _role);
+        emit UserRegistered(caller, _role, _profile.name);
     }
 }
