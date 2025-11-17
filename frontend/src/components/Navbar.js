@@ -1,6 +1,6 @@
 "use client";
 
-import Link from 'next/link'; // The Next.js component for navigation
+import Link from 'next/link';
 import ConnectWallet from './ConnectWallet';
 
 export default function Navbar() {
@@ -17,7 +17,12 @@ export default function Navbar() {
                     <Link href="/list-product" className="text-gray-300 hover:text-white transition-colors">
                         List a Product
                     </Link>
-                    {/* Add more links here later */}
+                    
+                    {/* THIS IS THE NEW LINE YOU ARE ADDING */}
+                    <Link href="/marketplace" className="text-gray-300 hover:text-white transition-colors">
+                        Marketplace
+                    </Link>
+
                 </div>
                 <ConnectWallet />
             </div>

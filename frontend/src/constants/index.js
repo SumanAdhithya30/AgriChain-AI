@@ -264,9 +264,27 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "string",
           "name": "_ipfsImageHash",
           "type": "string"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_price",
+          "type": "uint256"
         }
       ],
       "name": "listNewProduct",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_tokenId",
+          "type": "uint256"
+        }
+      ],
+      "name": "markAsSold",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -338,6 +356,11 @@ export const PRODUCT_CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
+          "name": "price",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
           "name": "dateHarvested",
           "type": "uint256"
         },
@@ -345,6 +368,11 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "address",
           "name": "farmer",
           "type": "address"
+        },
+        {
+          "internalType": "bool",
+          "name": "isForSale",
+          "type": "bool"
         }
       ],
       "stateMutability": "view",
@@ -462,6 +490,49 @@ export const PRODUCT_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenByIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "index",
+          "type": "uint256"
+        }
+      ],
+      "name": "tokenOfOwnerByIndex",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
         }
@@ -472,6 +543,19 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "string",
           "name": "",
           "type": "string"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalSupply",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
