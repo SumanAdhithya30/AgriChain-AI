@@ -22,17 +22,25 @@ async function main() {
   // Deploy TraceabilityContract
   console.log("\nDeploying TraceabilityContract...");
   const Traceability = await hre.ethers.getContractFactory("TraceabilityContract");
-  const traceability = await Traceability.deploy();
-  const traceabilityAddress = await traceability.getAddress();
+  const traceability = await Traceability.deploy(); // This deploys the contract and returns the instance
+  const traceabilityAddress = await traceability.getAddress(); // This gets the address from the INSTANCE
   console.log("=> TraceabilityContract deployed to:", traceabilityAddress);
 
-  // Deploy AgreementContract, passing the ProductContract's address
+  // Deploy AgreementContract
   console.log("\nDeploying AgreementContract (linking to ProductContract)...");
   const Agreement = await hre.ethers.getContractFactory("AgreementContract");
-  const agreement = await Agreement.deploy(productAddress); // Pass the address here
+  const agreement = await Agreement.deploy(productAddress);
   const agreementAddress = await agreement.getAddress();
   console.log("=> AgreementContract deployed to:", agreementAddress);
+  
+  // Link contracts
+  console.log("\nLinking ProductContract with AgreementContract...");
+  const tx = await product.connect(deployer).setAgreementContract(agreementAddress);
+  await tx.wait();
+  console.log("=> Contracts linked successfully!");
 
+
+  // Final Summary
   console.log("\n\n--- Deployment Complete ---");
   console.log("RegistryContract Address:    ", registryAddress);
   console.log("ProductContract Address:     ", productAddress);

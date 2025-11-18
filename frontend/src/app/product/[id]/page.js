@@ -23,6 +23,8 @@ export default function ProductDetailPage() {
     
     const [isBuying, setIsBuying] = useState(false);
     const [feedback, setFeedback] = useState('');
+    // NEW: State for the quantity the buyer wants to purchase
+    const [quantityToBuy, setQuantityToBuy] = useState('1'); 
 
     const fetchProductDetails = useCallback(async () => {
         if (!productId) return;
@@ -35,19 +37,15 @@ export default function ProductDetailPage() {
                 return;
             }
             const provider = new ethers.BrowserProvider(window.ethereum);
-
             const productContract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, provider);
             const ownerAddress = await productContract.ownerOf(productId);
             const details = await productContract.productDetails(productId);
             
             const registryContract = new ethers.Contract(REGISTRY_CONTRACT_ADDRESS, REGISTRY_CONTRACT_ABI, provider);
-
-            // === THE FIX: Accessing struct data by array index ===
             const userStruct = await registryContract.users(ownerAddress);
-            const isRegistered = userStruct[2];   // The 'isRegistered' boolean
-            const ownerProfile = userStruct[3];   // The nested 'UserProfile' struct
-            const name = ownerProfile[0];       // The 'name' string from the profile
-            // ======================================================
+            const isRegistered = userStruct[2];
+            const ownerProfile = userStruct[3];
+            const name = ownerProfile[0];
 
             const ownerName = name && isRegistered ? name : ownerAddress;
 
@@ -56,7 +54,9 @@ export default function ProductDetailPage() {
                 owner: ownerAddress,
                 ownerName: ownerName,
                 name: details.productName,
-                price: details.price,
+                pricePerUnit: details.pricePerUnit, // Use pricePerUnit
+                quantityAvailable: details.quantityAvailable,
+                unit: details.unit,
                 isForSale: details.isForSale,
             });
 
@@ -72,26 +72,48 @@ export default function ProductDetailPage() {
         fetchProductDetails();
     }, [fetchProductDetails]);
 
+
     const handleBuyProduct = async () => {
         if (!product) return;
+        
+        // Basic validation for quantity
+        const quantity = parseInt(quantityToBuy);
+        if (isNaN(quantity) || quantity <= 0) {
+            setFeedback("Please enter a valid quantity.");
+            return;
+        }
+
         setIsBuying(true);
         setFeedback("Preparing purchase...");
+
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
-            const agreementContract = new ethers.Contract(AGREEMENT_CONTRACT_ADDRESS, AGREEMENT_CONTRACT_ABI, signer);
-            setFeedback("Please confirm transaction in MetaMask...");
-            const tx = await agreementContract.createAgreement(product.id, product.price, { value: product.price });
+
+            const agreementContract = new ethers.Contract(
+                AGREEMENT_CONTRACT_ADDRESS,
+                AGREEMENT_CONTRACT_ABI,
+                signer
+            );
+            
+            setFeedback("Please confirm transaction in MetaMask to send funds to escrow...");
+
+            // CHANGE: Call createAgreement with quantity, calculate total value
+            const totalValue = product.pricePerUnit * BigInt(quantity);
+            const tx = await agreementContract.createAgreement(product.id, BigInt(quantity), { value: totalValue });
+
             setFeedback("Transaction sent! Waiting for confirmation...");
             await tx.wait();
-            setFeedback("Success! Funds are in escrow.");
+
+            setFeedback(`Success! ${quantity} ${product.unit}(s) purchased. Funds are in escrow.`);
             fetchProductDetails(); 
+
         } catch(err) {
             console.error("Purchase failed:", err);
-            if (err.code === 'ACTION_REJECTED') {
+            if (err.reason) {
+                 setFeedback(`Error: ${err.reason}`);
+            } else if (err.code === 'ACTION_REJECTED') {
                  setFeedback("Transaction rejected.");
-            } else if (err.reason) {
-                setFeedback(`Error: ${err.reason}`);
             } else {
                  setFeedback("An error occurred. Check console.");
             }
@@ -101,8 +123,8 @@ export default function ProductDetailPage() {
     };
 
     if (loading) return <p className="text-center text-white p-10">Loading product...</p>;
-    if (error) return <p className-="text-center text-red-400 p-10">{error}</p>;
-    if (!product) return <p className-="text-center text-white p-10">Product not found.</p>;
+    if (error) return <p className="text-center text-red-400 p-10">{error}</p>;
+    if (!product) return <p className="text-center text-white p-10">Product not found.</p>;
 
     return (
         <main className="min-h-screen p-8 bg-gray-900 text-white">
@@ -116,21 +138,44 @@ export default function ProductDetailPage() {
                     <div className="flex flex-col">
                         <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
                         <p className="text-lg text-gray-300 mb-4">Sold by: <span className="font-semibold">{product.ownerName}</span></p>
-                        <p className="text-2xl font-semibold text-green-400 mb-4">{ethers.formatEther(product.price)} ETH</p>
+                        
+                        {/* NEW: Display Price per Unit */}
+                        <p className="text-xl font-semibold text-green-400 mb-4">
+                            {ethers.formatEther(product.pricePerUnit)} ETH / {product.unit}
+                        </p>
+                        
                         <div className="text-sm text-gray-400 space-y-2 mb-6">
                            <p><span className="font-bold">Token ID:</span> {product.id}</p> 
                            <p><span className="font-bold">Owner's Address:</span> <span className="break-all">{product.owner}</span></p> 
-                           <p><span className="font-bold">Status:</span> {product.isForSale ? "For Sale" : "Sold"}</p> 
+                           <p><span className="font-bold">Status:</span> {product.isForSale ? "For Sale" : "Sold Out"}</p> 
+                           <p><span className="font-bold">Available:</span> {product.quantityAvailable} {product.unit}</p> 
                         </div>
+
                         <div className="mt-auto">
+                            {/* Input for Quantity to Buy */}
+                            <div className="flex items-center mb-4 gap-4">
+                                <label htmlFor="quantityToBuy" className="text-sm font-medium shrink-0">Buy Quantity:</label>
+                                <input
+                                    id="quantityToBuy"
+                                    type="number"
+                                    value={quantityToBuy}
+                                    onChange={(e) => setQuantityToBuy(e.target.value)}
+                                    className="w-24 px-2 py-1 text-sm text-center text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    min="1"
+                                    max={product.quantityAvailable > 0 ? product.quantityAvailable : 1} // Max is the available quantity
+                                    disabled={!product.isForSale || isBuying}
+                                />
+                                <span className="text-gray-500">{product.unit}</span>
+                            </div>
+
                             <button 
                                 onClick={handleBuyProduct}
-                                disabled={!product.isForSale || isBuying}
+                                disabled={!product.isForSale || isBuying || !quantityToBuy || parseInt(quantityToBuy) === 0}
                                 className="w-full px-6 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed"
                             >
-                                {isBuying ? "Processing..." : (product.isForSale ? "Buy Now (Escrow)" : "This item has been sold")}
+                                {isBuying ? "Processing..." : (product.isForSale ? `Buy Now (${ethers.formatEther(product.pricePerUnit * BigInt(quantityToBuy || 0)) || 0} ETH)` : "This item has been sold")}
                             </button>
-                             {feedback && <p className="text-center text-sm text-gray-300 mt-4">{feedback}</p>}
+                            {feedback && <p className="text-center text-sm text-gray-300 mt-4">{feedback}</p>}
                         </div>
                     </div>
                 </div>

@@ -229,6 +229,38 @@ export const PRODUCT_CONTRACT_ABI = [
       "type": "event"
     },
     {
+      "inputs": [],
+      "name": "agreementContractAddress",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "allProductIds",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [
         {
           "internalType": "address",
@@ -269,6 +301,24 @@ export const PRODUCT_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "uint256",
+          "name": "_productId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_amount",
+          "type": "uint256"
+        }
+      ],
+      "name": "decreaseQuantity",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
         }
@@ -279,6 +329,43 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "address",
           "name": "",
           "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "getProductIds",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "getTotalProducts",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -327,24 +414,21 @@ export const PRODUCT_CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
-          "name": "_price",
+          "name": "_pricePerUnit",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_quantityAvailable",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "_unit",
+          "type": "string"
         }
       ],
       "name": "listNewProduct",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "_tokenId",
-          "type": "uint256"
-        }
-      ],
-      "name": "markAsSold",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
@@ -416,8 +500,18 @@ export const PRODUCT_CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
-          "name": "price",
+          "name": "pricePerUnit",
           "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "quantityAvailable",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "unit",
+          "type": "string"
         },
         {
           "internalType": "uint256",
@@ -500,6 +594,19 @@ export const PRODUCT_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "address",
+          "name": "_address",
+          "type": "address"
+        }
+      ],
+      "name": "setAgreementContract",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
           "name": "operator",
           "type": "address"
         },
@@ -550,49 +657,6 @@ export const PRODUCT_CONTRACT_ABI = [
       "inputs": [
         {
           "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "tokenByIndex",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "index",
-          "type": "uint256"
-        }
-      ],
-      "name": "tokenOfOwnerByIndex",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
           "name": "tokenId",
           "type": "uint256"
         }
@@ -603,19 +667,6 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "string",
           "name": "",
           "type": "string"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "totalSupply",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
         }
       ],
       "stateMutability": "view",
@@ -687,20 +738,14 @@ export const AGREEMENT_CONTRACT_ABI = [
         },
         {
           "indexed": false,
-          "internalType": "address",
-          "name": "buyer",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "address",
-          "name": "seller",
-          "type": "address"
+          "internalType": "uint256",
+          "name": "quantity",
+          "type": "uint256"
         },
         {
           "indexed": false,
           "internalType": "uint256",
-          "name": "price",
+          "name": "totalValue",
           "type": "uint256"
         }
       ],
@@ -766,6 +811,11 @@ export const AGREEMENT_CONTRACT_ABI = [
           "type": "uint256"
         },
         {
+          "internalType": "uint256",
+          "name": "quantityPurchased",
+          "type": "uint256"
+        },
+        {
           "internalType": "address",
           "name": "buyer",
           "type": "address"
@@ -777,7 +827,7 @@ export const AGREEMENT_CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
-          "name": "price",
+          "name": "totalValue",
           "type": "uint256"
         },
         {
@@ -811,7 +861,7 @@ export const AGREEMENT_CONTRACT_ABI = [
         },
         {
           "internalType": "uint256",
-          "name": "_price",
+          "name": "_quantityToBuy",
           "type": "uint256"
         }
       ],
