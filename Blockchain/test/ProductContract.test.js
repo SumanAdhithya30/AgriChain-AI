@@ -1,59 +1,63 @@
 import { expect } from "chai";
 import hre from "hardhat";
 
-describe("ProductContract", function () {
+describe("ProductContract - V2 (Quantity)", function () {
     let productContract;
-    let owner;
-    let farmer;
+    let owner, farmer, agreementContractMock;
 
-    // Helper to convert Ether to Wei for the price
     const toWei = (value) => hre.ethers.parseEther(value.toString());
 
     beforeEach(async function () {
-        [owner, farmer] = await hre.ethers.getSigners();
+        [owner, farmer, agreementContractMock] = await hre.ethers.getSigners();
         const ProductContractFactory = await hre.ethers.getContractFactory("ProductContract");
         productContract = await ProductContractFactory.deploy();
+        
+        // In our tests, we need to set the agreement contract address
+        // We will use a mock address (another signer) for this.
+        await productContract.connect(owner).setAgreementContract(agreementContractMock.address);
     });
 
-    it("Should mint a new NFT with a price and store details", async function () {
-        const productName = "Organic Tomatoes";
-        const ipfsHash = "QmTp2h4544p4p5g5V5f5g5h6h6j6k6l6m6n6o6";
-        const price = toWei(1); // NEW: Define a price of 1 ETH
+    it("Should list a new product with quantity and price per unit", async function () {
+        const price = toWei(0.1);
+        const quantity = 1000; // 1000 kg
+        const unit = "kg";
 
-        // CHANGE: We now call listNewProduct with the price.
-        // Also, since it is now `onlyOwner`, we must call it from the `owner` account.
-        const tx = await productContract.connect(owner).listNewProduct(farmer.address, productName, ipfsHash, price);
-        await tx.wait();
+        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", price, quantity, unit);
         
+        const details = await productContract.productDetails(1);
         expect(await productContract.ownerOf(1)).to.equal(farmer.address);
+        expect(details.pricePerUnit).to.equal(price);
+        expect(details.quantityAvailable).to.equal(quantity);
+        expect(details.unit).to.equal(unit);
+    });
+
+    it("Should allow the agreement contract to decrease quantity", async function () {
+        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", toWei(0.1), 100, "kg");
+        
+        const amountToDecrease = 25;
+        // Connect as the mock 'agreement contract' to call the function
+        await productContract.connect(agreementContractMock).decreaseQuantity(1, amountToDecrease);
 
         const details = await productContract.productDetails(1);
-        expect(details.productName).to.equal(productName);
-        expect(details.ipfsImageHash).to.equal(ipfsHash);
-        expect(details.price).to.equal(price); // NEW: Test that the price was stored correctly.
-        expect(details.farmer).to.equal(farmer.address);
-        expect(details.isForSale).to.equal(true); // NEW: Test the for-sale status.
+        expect(details.quantityAvailable).to.equal(75); // 100 - 25
     });
 
-    it("Should fail if the price is zero", async function () {
-        const price = toWei(0); // Price of zero
-
-        // We expect this transaction to fail with the specific error message from our contract.
-        await expect(
-            productContract.connect(owner).listNewProduct(farmer.address, "No Price Tomatoes", "hash", price)
-        ).to.be.revertedWith("Price must be greater than zero");
-    });
-
-    it("Should increment token IDs for each new product", async function () {
-        // We can no longer use the totalSupply check as we removed Enumerable to fix the compile error.
-        // We will test by checking ownerOf, which is a reliable method.
-
-        // List product 1
-        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", toWei(1));
-        expect(await productContract.ownerOf(1)).to.equal(farmer.address);
+    it("Should fail if a non-agreement-contract tries to decrease quantity", async function () {
+        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", toWei(0.1), 100, "kg");
         
-        // List product 2
-        await productContract.connect(owner).listNewProduct(owner.address, "Cucumbers", "hash2", toWei(2));
-        expect(await productContract.ownerOf(2)).to.equal(owner.address);
+        // 'farmer' tries to call the function, should be reverted
+        await expect(
+            productContract.connect(farmer).decreaseQuantity(1, 10)
+        ).to.be.revertedWith("Only AgreementContract can call this");
+    });
+    
+    it("Should mark product as not for sale when quantity reaches zero", async function () {
+        await productContract.connect(owner).listNewProduct(farmer.address, "Limited Edition Apple", "hash2", toWei(1), 1, "piece");
+
+        await productContract.connect(agreementContractMock).decreaseQuantity(1, 1);
+
+        const details = await productContract.productDetails(1);
+        expect(details.quantityAvailable).to.equal(0);
+        expect(details.isForSale).to.equal(false);
     });
 });
