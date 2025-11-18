@@ -23,7 +23,6 @@ export default function ProductDetailPage() {
     
     const [isBuying, setIsBuying] = useState(false);
     const [feedback, setFeedback] = useState('');
-    // NEW: State for the quantity the buyer wants to purchase
     const [quantityToBuy, setQuantityToBuy] = useState('1'); 
 
     const fetchProductDetails = useCallback(async () => {
@@ -31,12 +30,8 @@ export default function ProductDetailPage() {
         setLoading(true);
         setError('');
         try {
-            if (typeof window.ethereum === 'undefined') {
-                setError("MetaMask is not installed.");
-                setLoading(false);
-                return;
-            }
             const provider = new ethers.BrowserProvider(window.ethereum);
+
             const productContract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, provider);
             const ownerAddress = await productContract.ownerOf(productId);
             const details = await productContract.productDetails(productId);
@@ -54,9 +49,10 @@ export default function ProductDetailPage() {
                 owner: ownerAddress,
                 ownerName: ownerName,
                 name: details.productName,
-                pricePerUnit: details.pricePerUnit, // Use pricePerUnit
+                pricePerUnit: details.pricePerUnit,
                 quantityAvailable: details.quantityAvailable,
                 unit: details.unit,
+                dateHarvested: details.dateHarvested, // <-- ADDED THIS
                 isForSale: details.isForSale,
             });
 
@@ -74,53 +70,36 @@ export default function ProductDetailPage() {
 
 
     const handleBuyProduct = async () => {
+        // ... This function remains exactly the same
         if (!product) return;
-        
-        // Basic validation for quantity
         const quantity = parseInt(quantityToBuy);
         if (isNaN(quantity) || quantity <= 0) {
             setFeedback("Please enter a valid quantity.");
             return;
         }
-
         setIsBuying(true);
         setFeedback("Preparing purchase...");
-
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
             const signer = await provider.getSigner();
-
-            const agreementContract = new ethers.Contract(
-                AGREEMENT_CONTRACT_ADDRESS,
-                AGREEMENT_CONTRACT_ABI,
-                signer
-            );
-            
-            setFeedback("Please confirm transaction in MetaMask to send funds to escrow...");
-
-            // CHANGE: Call createAgreement with quantity, calculate total value
+            const agreementContract = new ethers.Contract(AGREEMENT_CONTRACT_ADDRESS, AGREEMENT_CONTRACT_ABI, signer);
+            setFeedback("Please confirm transaction in MetaMask...");
             const totalValue = product.pricePerUnit * BigInt(quantity);
             const tx = await agreementContract.createAgreement(product.id, BigInt(quantity), { value: totalValue });
-
             setFeedback("Transaction sent! Waiting for confirmation...");
             await tx.wait();
-
             setFeedback(`Success! ${quantity} ${product.unit}(s) purchased. Funds are in escrow.`);
             fetchProductDetails(); 
-
         } catch(err) {
             console.error("Purchase failed:", err);
-            if (err.reason) {
-                 setFeedback(`Error: ${err.reason}`);
-            } else if (err.code === 'ACTION_REJECTED') {
-                 setFeedback("Transaction rejected.");
-            } else {
-                 setFeedback("An error occurred. Check console.");
-            }
+            if (err.reason) { setFeedback(`Error: ${err.reason}`); }
+            else if (err.code === 'ACTION_REJECTED') { setFeedback("Transaction rejected."); }
+            else { setFeedback("An error occurred. Check console."); }
         } finally {
             setIsBuying(false);
         }
     };
+
 
     if (loading) return <p className="text-center text-white p-10">Loading product...</p>;
     if (error) return <p className="text-center text-red-400 p-10">{error}</p>;
@@ -139,7 +118,6 @@ export default function ProductDetailPage() {
                         <h1 className="text-4xl font-bold mb-4">{product.name}</h1>
                         <p className="text-lg text-gray-300 mb-4">Sold by: <span className="font-semibold">{product.ownerName}</span></p>
                         
-                        {/* NEW: Display Price per Unit */}
                         <p className="text-xl font-semibold text-green-400 mb-4">
                             {ethers.formatEther(product.pricePerUnit)} ETH / {product.unit}
                         </p>
@@ -147,33 +125,22 @@ export default function ProductDetailPage() {
                         <div className="text-sm text-gray-400 space-y-2 mb-6">
                            <p><span className="font-bold">Token ID:</span> {product.id}</p> 
                            <p><span className="font-bold">Owner's Address:</span> <span className="break-all">{product.owner}</span></p> 
+                           {/* --- THIS IS THE NEW LINE --- */}
+                           <p><span className="font-bold">Listed On:</span> {new Date(Number(product.dateHarvested) * 1000).toLocaleDateString()}</p> 
+                           {/* ----------------------------- */}
                            <p><span className="font-bold">Status:</span> {product.isForSale ? "For Sale" : "Sold Out"}</p> 
-                           <p><span className="font-bold">Available:</span> {product.quantityAvailable} {product.unit}</p> 
+                           <p><span className="font-bold">Available:</span> {String(product.quantityAvailable)} {product.unit}</p> 
                         </div>
 
                         <div className="mt-auto">
-                            {/* Input for Quantity to Buy */}
                             <div className="flex items-center mb-4 gap-4">
                                 <label htmlFor="quantityToBuy" className="text-sm font-medium shrink-0">Buy Quantity:</label>
-                                <input
-                                    id="quantityToBuy"
-                                    type="number"
-                                    value={quantityToBuy}
-                                    onChange={(e) => setQuantityToBuy(e.target.value)}
-                                    className="w-24 px-2 py-1 text-sm text-center text-white bg-gray-700 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    min="1"
-                                    max={product.quantityAvailable > 0 ? product.quantityAvailable : 1} // Max is the available quantity
-                                    disabled={!product.isForSale || isBuying}
-                                />
+                                <input id="quantityToBuy" type="number" value={quantityToBuy} onChange={(e) => setQuantityToBuy(e.target.value)} className="w-24 px-2 py-1 text-sm text-center text-white bg-gray-700 border border-gray-600 rounded-md" min="1" max={product.quantityAvailable > 0 ? String(product.quantityAvailable) : 1} disabled={!product.isForSale || isBuying} />
                                 <span className="text-gray-500">{product.unit}</span>
                             </div>
 
-                            <button 
-                                onClick={handleBuyProduct}
-                                disabled={!product.isForSale || isBuying || !quantityToBuy || parseInt(quantityToBuy) === 0}
-                                className="w-full px-6 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed"
-                            >
-                                {isBuying ? "Processing..." : (product.isForSale ? `Buy Now (${ethers.formatEther(product.pricePerUnit * BigInt(quantityToBuy || 0)) || 0} ETH)` : "This item has been sold")}
+                            <button onClick={handleBuyProduct} disabled={!product.isForSale || isBuying || !quantityToBuy || parseInt(quantityToBuy) <= 0} className="w-full px-6 py-3 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500 disabled:cursor-not-allowed">
+                                {isBuying ? "Processing..." : (product.isForSale ? `Buy Now (${ethers.formatEther(product.pricePerUnit * BigInt(quantityToBuy || 0))} ETH)` : "This item has been sold")}
                             </button>
                             {feedback && <p className="text-center text-sm text-gray-300 mt-4">{feedback}</p>}
                         </div>
