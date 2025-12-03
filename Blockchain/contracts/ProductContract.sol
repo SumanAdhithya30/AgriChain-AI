@@ -1,14 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol"; // Using the standard ERC721
+import "./RegistryContract.sol"; 
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol"; // Re-importing Counters
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract ProductContract is ERC721, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIdCounter;
 
+    RegistryContract public registry; 
     address public agreementContractAddress;
 
     struct ProductDetails {
@@ -23,28 +25,34 @@ contract ProductContract is ERC721, Ownable {
     }
 
     mapping(uint256 => ProductDetails) public productDetails;
-    
-    // We will keep a list of all active product IDs ourselves
     uint256[] public allProductIds;
-
-    constructor() ERC721("AgriChainProduct", "AGP") Ownable() {}
+    
+    constructor(address _registryAddress) ERC721("AgriChainProduct", "AGP") Ownable() {
+        registry = RegistryContract(_registryAddress);
+    }
+    
+    // CORRECTED MODIFIER - It takes 4 return values
+    modifier onlyFarmer() {
+        ( , RegistryContract.UserRole role, bool isRegistered, ) = registry.users(msg.sender);
+        require(isRegistered && role == RegistryContract.UserRole.FARMER, "Caller is not a registered Farmer");
+        _;
+    }
 
     function listNewProduct(
-        address _farmer,
         string memory _productName,
         string memory _ipfsImageHash,
         uint256 _pricePerUnit,
         uint256 _quantityAvailable,
         string memory _unit
-    ) external onlyOwner {
+    ) external onlyFarmer {
         require(_pricePerUnit > 0, "Price must be greater than zero");
         require(_quantityAvailable > 0, "Quantity must be greater than zero");
 
         _tokenIdCounter.increment();
         uint256 newTokenId = _tokenIdCounter.current();
 
-        _safeMint(_farmer, newTokenId);
-        allProductIds.push(newTokenId); // Add the new ID to our list
+        _safeMint(msg.sender, newTokenId);
+        allProductIds.push(newTokenId);
 
         productDetails[newTokenId] = ProductDetails({
             productName: _productName,
@@ -53,7 +61,7 @@ contract ProductContract is ERC721, Ownable {
             quantityAvailable: _quantityAvailable,
             unit: _unit,
             dateHarvested: block.timestamp,
-            farmer: _farmer,
+            farmer: msg.sender,
             isForSale: true
         });
     }
@@ -62,9 +70,7 @@ contract ProductContract is ERC721, Ownable {
         require(msg.sender == agreementContractAddress, "Only AgreementContract can call this");
         ProductDetails storage product = productDetails[_productId];
         require(product.quantityAvailable >= _amount, "Not enough quantity to decrease");
-        
         product.quantityAvailable -= _amount;
-        
         if (product.quantityAvailable == 0) {
             product.isForSale = false;
         }
@@ -74,22 +80,17 @@ contract ProductContract is ERC721, Ownable {
         agreementContractAddress = _address;
     }
     
-    // --- View Functions for Frontend ---
-
     function getTotalProducts() external view returns (uint256) {
         return allProductIds.length;
     }
 
     function getProductIds(uint256 page, uint256 limit) external view returns (uint256[] memory) {
-        // This is a simple pagination logic. In a real app, this would be more robust.
         uint256 total = allProductIds.length;
         if(page == 0) page = 1;
         uint256 startIndex = (page - 1) * limit;
         if(startIndex >= total) return new uint256[](0);
-        
         uint256 endIndex = startIndex + limit;
         if(endIndex > total) endIndex = total;
-        
         uint256[] memory ids = new uint256[](endIndex - startIndex);
         uint counter = 0;
         for(uint i = startIndex; i < endIndex; i++){
@@ -98,5 +99,4 @@ contract ProductContract is ERC721, Ownable {
         }
         return ids;
     }
-
 }

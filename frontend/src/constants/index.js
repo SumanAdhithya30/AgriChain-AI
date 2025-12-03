@@ -130,7 +130,13 @@ export const REGISTRY_CONTRACT_ABI = [
   ];
 export const PRODUCT_CONTRACT_ABI = [
     {
-      "inputs": [],
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_registryAddress",
+          "type": "address"
+        }
+      ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
@@ -398,11 +404,6 @@ export const PRODUCT_CONTRACT_ABI = [
     {
       "inputs": [
         {
-          "internalType": "address",
-          "name": "_farmer",
-          "type": "address"
-        },
-        {
           "internalType": "string",
           "name": "_productName",
           "type": "string"
@@ -527,6 +528,19 @@ export const PRODUCT_CONTRACT_ABI = [
           "internalType": "bool",
           "name": "isForSale",
           "type": "bool"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "registry",
+      "outputs": [
+        {
+          "internalType": "contract RegistryContract",
+          "name": "",
+          "type": "address"
         }
       ],
       "stateMutability": "view",
@@ -899,28 +913,20 @@ export const AGREEMENT_CONTRACT_ABI = [
   ];
 export const TRACEABILITY_CONTRACT_ABI = [
     {
-      "inputs": [],
-      "stateMutability": "nonpayable",
-      "type": "constructor"
-    },
-    {
-      "anonymous": false,
       "inputs": [
         {
-          "indexed": true,
           "internalType": "address",
-          "name": "previousOwner",
+          "name": "_registryAddress",
           "type": "address"
         },
         {
-          "indexed": true,
           "internalType": "address",
-          "name": "newOwner",
+          "name": "_productAddress",
           "type": "address"
         }
       ],
-      "name": "OwnershipTransferred",
-      "type": "event"
+      "stateMutability": "nonpayable",
+      "type": "constructor"
     },
     {
       "anonymous": false,
@@ -948,6 +954,12 @@ export const TRACEABILITY_CONTRACT_ABI = [
           "internalType": "string",
           "name": "status",
           "type": "string"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "updatedBy",
+          "type": "address"
         }
       ],
       "name": "ProductStatusUpdated",
@@ -1002,6 +1014,11 @@ export const TRACEABILITY_CONTRACT_ABI = [
               "internalType": "string",
               "name": "status",
               "type": "string"
+            },
+            {
+              "internalType": "address",
+              "name": "updatedBy",
+              "type": "address"
             }
           ],
           "internalType": "struct TraceabilityContract.TrackingUpdate[]",
@@ -1014,10 +1031,10 @@ export const TRACEABILITY_CONTRACT_ABI = [
     },
     {
       "inputs": [],
-      "name": "owner",
+      "name": "product",
       "outputs": [
         {
-          "internalType": "address",
+          "internalType": "contract ProductContract",
           "name": "",
           "type": "address"
         }
@@ -1027,22 +1044,15 @@ export const TRACEABILITY_CONTRACT_ABI = [
     },
     {
       "inputs": [],
-      "name": "renounceOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
+      "name": "registry",
+      "outputs": [
         {
-          "internalType": "address",
-          "name": "newOwner",
+          "internalType": "contract RegistryContract",
+          "name": "",
           "type": "address"
         }
       ],
-      "name": "transferOwnership",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     }
   ];

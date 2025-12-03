@@ -1,79 +1,66 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+// 1. IMPORT ProductContract to check NFT ownership
+import "./ProductContract.sol"; 
 
-/**
- * @title TraceabilityContract
- * @dev Manages the supply chain history for products.
- * Allows an authorized party (the contract owner) to add tracking updates.
- */
-contract TraceabilityContract is Ownable {
+contract TraceabilityContract { // Note: We remove Ownable as it's no longer needed
 
-    //===========
-    // Data Types
-    //===========
+    // 2. CREATE LINKS to both Registry and Product contracts
+    RegistryContract public registry;
+    ProductContract public product;
 
     struct TrackingUpdate {
         uint256 timestamp;
         string location;
-        string status; // e.g., "In Transit", "Warehouse", "Delivered"
+        string status;
+        address updatedBy;
     }
 
-    // A mapping from a product ID (the NFT token ID) to an array of its tracking updates.
     mapping(uint256 => TrackingUpdate[]) private _trackingHistory;
 
-    //===========
-    // Events
-    //===========
     event ProductStatusUpdated(
         uint256 indexed productId,
         uint256 timestamp,
         string location,
-        string status
+        string status,
+        address indexed updatedBy
     );
 
-    //===========
-    // Constructor
-    //===========
-    // CORRECTED: The Ownable constructor for OpenZeppelin v4 takes no arguments.
-    constructor() Ownable() {}
+    // 3. THE CONSTRUCTOR NOW REQUIRES BOTH addresses
+    constructor(address _registryAddress, address _productAddress) {
+        registry = RegistryContract(_registryAddress);
+        product = ProductContract(_productAddress);
+    }
+    
+    // 4. THE NEW MODIFIER: Checks if the caller owns the specific product NFT
+    modifier onlyProductOwner(uint256 _productId) {
+        require(product.ownerOf(_productId) == msg.sender, "Caller is not the owner of this product");
+        _;
+    }
 
-    //===========
-    // Functions
-    //===========
-
-    /**
-     * @dev Adds a new tracking update to a product's history.
-     * Restricted to the contract owner (e.g., a centralized logistics partner).
-     * @param _productId The ID of the product NFT being updated.
-     * @param _location A description of the current location.
-     * @param _status The current status.
-     */
+    // 5. UPDATED FUNCTION: Now uses the new modifier
     function addTrackingUpdate(
         uint256 _productId,
         string memory _location,
         string memory _status
-    ) external onlyOwner {
+    ) external onlyProductOwner(_productId) { // <-- USE THE NEW MODIFIER and pass the ID
         _trackingHistory[_productId].push(TrackingUpdate({
             timestamp: block.timestamp,
             location: _location,
-            status: _status
+            status: _status,
+            updatedBy: msg.sender
         }));
 
         emit ProductStatusUpdated(
             _productId,
             block.timestamp,
             _location,
-            _status
+            _status,
+            msg.sender
         );
     }
 
-    /**
-     * @dev Public view function to retrieve the entire tracking history for a product.
-     * @param _productId The ID of the product to query.
-     * @return An array of TrackingUpdate structs.
-     */
     function getTrackingHistory(uint256 _productId) external view returns (TrackingUpdate[] memory) {
         return _trackingHistory[_productId];
     }

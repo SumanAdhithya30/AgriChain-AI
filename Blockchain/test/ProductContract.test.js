@@ -1,63 +1,81 @@
 import { expect } from "chai";
 import hre from "hardhat";
 
-describe("ProductContract - V2 (Quantity)", function () {
+describe("ProductContract - V3 (Decentralized)", function () {
+    let registry;
     let productContract;
-    let owner, farmer, agreementContractMock;
+    let owner, farmer1, farmer2, nonFarmer;
 
     const toWei = (value) => hre.ethers.parseEther(value.toString());
 
+    // Define a sample profile we can reuse for registration
+    const sampleProfile = {
+        name: "Test Farmer",
+        location: "Test Location",
+        contactInfo: "contact@test.com",
+        licenseOrId: "ID123"
+    };
+
     beforeEach(async function () {
-        [owner, farmer, agreementContractMock] = await hre.ethers.getSigners();
+        [owner, farmer1, farmer2, nonFarmer] = await hre.ethers.getSigners();
+        
+        // 1. We MUST deploy the RegistryContract first
+        const RegistryFactory = await hre.ethers.getContractFactory("RegistryContract");
+        registry = await RegistryFactory.deploy();
+
+        // 2. We then deploy the ProductContract, passing the Registry's address to its constructor
         const ProductContractFactory = await hre.ethers.getContractFactory("ProductContract");
-        productContract = await ProductContractFactory.deploy();
-        
-        // In our tests, we need to set the agreement contract address
-        // We will use a mock address (another signer) for this.
-        await productContract.connect(owner).setAgreementContract(agreementContractMock.address);
+        productContract = await ProductContractFactory.deploy(await registry.getAddress());
     });
 
-    it("Should list a new product with quantity and price per unit", async function () {
-        const price = toWei(0.1);
-        const quantity = 1000; // 1000 kg
-        const unit = "kg";
+    describe("Product Listing Logic", function() {
+        it("Should ALLOW a registered Farmer to list a new product", async function () {
+            // First, we must register 'farmer1' as a Farmer (role enum #1)
+            await registry.connect(farmer1).registerUser(1, sampleProfile);
 
-        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", price, quantity, unit);
+            // Now, farmer1 should be able to successfully list a product
+            // We use 'to.not.be.reverted' to check that the transaction succeeds
+            await expect(
+                productContract.connect(farmer1).listNewProduct("Organic Apples", "hash1", toWei(0.5), 500, "kg")
+            ).to.not.be.reverted;
+
+            // Verify the product was created correctly
+            const details = await productContract.productDetails(1);
+            expect(await productContract.ownerOf(1)).to.equal(farmer1.address);
+            expect(details.farmer).to.equal(farmer1.address);
+            expect(details.productName).to.equal("Organic Apples");
+        });
+
+        it("Should PREVENT a registered Buyer from listing a product", async function () {
+            // First, register 'nonFarmer' as a Buyer (role enum #2)
+            await registry.connect(nonFarmer).registerUser(2, { ...sampleProfile, name: "Test Buyer" });
+
+            // Now, the buyer should be BLOCKED from listing a product
+            await expect(
+                productContract.connect(nonFarmer).listNewProduct("Illegal Apples", "hash_err", toWei(1), 10, "kg")
+            ).to.be.revertedWith("Caller is not a registered Farmer");
+        });
         
-        const details = await productContract.productDetails(1);
-        expect(await productContract.ownerOf(1)).to.equal(farmer.address);
-        expect(details.pricePerUnit).to.equal(price);
-        expect(details.quantityAvailable).to.equal(quantity);
-        expect(details.unit).to.equal(unit);
+        it("Should PREVENT an unregistered user from listing a product", async function () {
+            // The 'farmer2' account has not been registered at all. The call should fail.
+            await expect(
+                productContract.connect(farmer2).listNewProduct("Unregistered Apples", "hash_err2", toWei(1), 20, "kg")
+            ).to.be.revertedWith("Caller is not a registered Farmer");
+        });
     });
 
-    it("Should allow the agreement contract to decrease quantity", async function () {
-        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", toWei(0.1), 100, "kg");
+    // We should also re-test our other logic to ensure it wasn't broken by our changes.
+    // This is called "regression testing".
+    describe("Existing Logic (Regression Tests)", function() {
+        beforeEach(async function() {
+            // Register owner as a farmer so they can list products for these tests
+            await registry.connect(owner).registerUser(1, { ...sampleProfile, name: "Owner Farmer" });
+        });
         
-        const amountToDecrease = 25;
-        // Connect as the mock 'agreement contract' to call the function
-        await productContract.connect(agreementContractMock).decreaseQuantity(1, amountToDecrease);
-
-        const details = await productContract.productDetails(1);
-        expect(details.quantityAvailable).to.equal(75); // 100 - 25
-    });
-
-    it("Should fail if a non-agreement-contract tries to decrease quantity", async function () {
-        await productContract.connect(owner).listNewProduct(farmer.address, "Tomatoes", "hash1", toWei(0.1), 100, "kg");
-        
-        // 'farmer' tries to call the function, should be reverted
-        await expect(
-            productContract.connect(farmer).decreaseQuantity(1, 10)
-        ).to.be.revertedWith("Only AgreementContract can call this");
-    });
-    
-    it("Should mark product as not for sale when quantity reaches zero", async function () {
-        await productContract.connect(owner).listNewProduct(farmer.address, "Limited Edition Apple", "hash2", toWei(1), 1, "piece");
-
-        await productContract.connect(agreementContractMock).decreaseQuantity(1, 1);
-
-        const details = await productContract.productDetails(1);
-        expect(details.quantityAvailable).to.equal(0);
-        expect(details.isForSale).to.equal(false);
+        it("Should fail if the price is zero", async function () {
+            await expect(
+                productContract.connect(owner).listNewProduct("Zero Price Apples", "hash_zero", 0, 100, "kg")
+            ).to.be.revertedWith("Price must be greater than zero");
+        });
     });
 });

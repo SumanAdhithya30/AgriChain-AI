@@ -1,46 +1,46 @@
 import hre from "hardhat";
 
 async function main() {
-  console.log("Starting deployment...");
+  console.log("Starting deployment (V5 - Farmer-Based Tracking)...");
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying contracts with the account:", deployer.address);
 
-  // Deploy RegistryContract
+  // 1. Deploy RegistryContract FIRST
   console.log("\nDeploying RegistryContract...");
   const Registry = await hre.ethers.getContractFactory("RegistryContract");
   const registry = await Registry.deploy();
   const registryAddress = await registry.getAddress();
   console.log("=> RegistryContract deployed to:", registryAddress);
 
-  // Deploy ProductContract
-  console.log("\nDeploying ProductContract...");
+  // 2. Deploy ProductContract, linking to Registry
+  console.log("\nDeploying ProductContract (linking to Registry)...");
   const Product = await hre.ethers.getContractFactory("ProductContract");
-  const product = await Product.deploy();
+  const product = await Product.deploy(registryAddress);
   const productAddress = await product.getAddress();
   console.log("=> ProductContract deployed to:", productAddress);
 
-  // Deploy TraceabilityContract
-  console.log("\nDeploying TraceabilityContract...");
+  // 3. Deploy TraceabilityContract, linking to BOTH Registry and Product contracts
+  console.log("\nDeploying TraceabilityContract (linking to Registry and Product)...");
   const Traceability = await hre.ethers.getContractFactory("TraceabilityContract");
-  const traceability = await Traceability.deploy(); // This deploys the contract and returns the instance
-  const traceabilityAddress = await traceability.getAddress(); // This gets the address from the INSTANCE
+  const traceability = await Traceability.deploy(registryAddress, productAddress); // Pass both addresses
+  const traceabilityAddress = await traceability.getAddress();
   console.log("=> TraceabilityContract deployed to:", traceabilityAddress);
 
-  // Deploy AgreementContract
+  // 4. Deploy AgreementContract, linking to ProductContract
   console.log("\nDeploying AgreementContract (linking to ProductContract)...");
   const Agreement = await hre.ethers.getContractFactory("AgreementContract");
   const agreement = await Agreement.deploy(productAddress);
   const agreementAddress = await agreement.getAddress();
   console.log("=> AgreementContract deployed to:", agreementAddress);
   
-  // Link contracts
+  // 5. Link ProductContract with AgreementContract (for decreasing quantity)
   console.log("\nLinking ProductContract with AgreementContract...");
   const tx = await product.connect(deployer).setAgreementContract(agreementAddress);
   await tx.wait();
   console.log("=> Contracts linked successfully!");
 
 
-  // Final Summary
+  // --- FINAL SUMMARY ---
   console.log("\n\n--- Deployment Complete ---");
   console.log("RegistryContract Address:    ", registryAddress);
   console.log("ProductContract Address:     ", productAddress);
@@ -53,48 +53,3 @@ main().catch((error) => {
   console.error(error);
   process.exitCode = 1;
 });
-
-
-// import hre from "hardhat";
-
-// async function main() {
-//   console.log("Starting deployment...");
-//   const [deployer] = await hre.ethers.getSigners();
-//   console.log("Deploying contracts with the account:", deployer.address);
-
-//   // Correct gas estimation function for ethers v6
-//   async function estimate(factory, ...args) {
-//     const deployTx = await factory.getDeployTransaction(...args);
-//     return deployer.estimateGas(deployTx);
-//   }
-
-//   console.log("\n--- Gas Estimates ---");
-
-//   // Registry
-//   const Registry = await hre.ethers.getContractFactory("RegistryContract");
-//   const gasRegistry = await estimate(Registry);
-//   console.log("RegistryContract Gas:", gasRegistry.toString());
-
-//   // Product
-//   const Product = await hre.ethers.getContractFactory("ProductContract");
-//   const gasProduct = await estimate(Product);
-//   console.log("ProductContract Gas:", gasProduct.toString());
-
-//   // Traceability
-//   const Traceability = await hre.ethers.getContractFactory("TraceabilityContract");
-//   const gasTraceability = await estimate(Traceability);
-//   console.log("TraceabilityContract Gas:", gasTraceability.toString());
-
-//   // Agreement (needs product address)
-//   const fakeProduct = "0x0000000000000000000000000000000000000001";
-//   const Agreement = await hre.ethers.getContractFactory("AgreementContract");
-//   const gasAgreement = await estimate(Agreement, fakeProduct);
-//   console.log("AgreementContract Gas:", gasAgreement.toString());
-
-//   console.log("\n--- Gas Estimation Complete ---");
-// }
-
-// main().catch((error) => {
-//   console.error(error);
-//   process.exitCode = 1;
-// });
