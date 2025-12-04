@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ethers } from 'ethers';
 import { PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI } from '../../constants';
+import { checkAndSwitchNetwork } from '../../utils/network';
 
 function ProductCard({ product }) {
     const formattedPrice = product?.pricePerUnit ? ethers.formatEther(product.pricePerUnit) : 'N/A';
@@ -30,7 +31,19 @@ export default function MarketplacePage() {
         setLoading(true);
         setError('');
         try {
+            if (typeof window.ethereum === 'undefined') {
+                setError("MetaMask is not installed.");
+                return;
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            // Check network before fetching
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setError("Please switch to the correct network to view products.");
+                return;
+            }
+
             const contract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, provider);
             
             // --- THIS IS THE CORRECTED LOGIC ---

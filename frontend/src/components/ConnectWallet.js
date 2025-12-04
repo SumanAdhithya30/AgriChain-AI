@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
+import { checkAndSwitchNetwork } from '../utils/network';
 
 export default function ConnectWallet() {
   const [account, setAccount] = useState(null);
@@ -18,6 +19,10 @@ export default function ConnectWallet() {
       
       try {
         const provider = new ethers.BrowserProvider(window.ethereum);
+        
+        const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+        if (!isCorrectNetwork) return;
+
         const accounts = await provider.listAccounts();
         
         if (accounts.length > 0) {
@@ -43,6 +48,10 @@ export default function ConnectWallet() {
     
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
+
+      const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+      if (!isCorrectNetwork) return;
+
       const accounts = await provider.send("eth_requestAccounts", []);
       
       if (accounts.length > 0) {
