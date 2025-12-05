@@ -38,6 +38,9 @@ export default function YieldPrediction() {
   const [error, setError] = useState(null);
 
 
+  const [pricePrediction, setPricePrediction] = useState(null);
+  const [priceLoading, setPriceLoading] = useState(false);
+  const [priceError, setPriceError] = useState(null);
 
   // Mock average yields for comparison (Tonnes/Acre)
   const averageYields = {
@@ -51,9 +54,43 @@ export default function YieldPrediction() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handlePriceSubmit = async () => {
+    if (!prediction) return;
+    setPriceLoading(true);
+    setPriceError(null);
+    setPricePrediction(null);
+
+    try {
+      const response = await fetch('http://localhost:5001/predict-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          Predicted_Yield: prediction,
+          CPI: 155.0, // Mock current CPI
+          Fuel_Price: 98.0, // Mock current Fuel Price
+          Current_Price: 1800.0, // Mock current market price
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to fetch price forecast');
+
+      const data = await response.json();
+      setPricePrediction(data.predicted_price);
+    } catch (err) {
+      setPriceError(err.message);
+    } finally {
+      setPriceLoading(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
+    // Reset price state when new yield is predicted
+    setPricePrediction(null);
+    setPriceError(null);
+    
     e.preventDefault();
     setLoading(true);
+    // ... existing handleSubmit logic ...
     setError(null);
     setPrediction(null);
 
@@ -288,6 +325,45 @@ export default function YieldPrediction() {
                 {/* Chart Section */}
                 <div className="p-6 bg-gray-900/50 rounded-xl border border-gray-700">
                   <Bar data={chartData} options={chartOptions} />
+                </div>
+
+                {/* Price Prediction Section */}
+                <div className="mt-8 border-t border-gray-700 pt-8">
+                  <h3 className="text-2xl font-bold mb-4 text-center text-blue-400">Market Price Forecast</h3>
+                  <p className="text-gray-400 text-center mb-6">
+                    Analyze market trends based on your predicted yield of {prediction.toFixed(2)} Tonnes/Acre.
+                  </p>
+                  
+                  {!pricePrediction && !priceLoading && (
+                    <button
+                      onClick={handlePriceSubmit}
+                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-4 rounded-lg shadow-lg transform hover:scale-[1.02] transition-all"
+                    >
+                      Analyze Market Price
+                    </button>
+                  )}
+
+                  {priceLoading && (
+                     <div className="text-center text-blue-300 animate-pulse">
+                        Analyzing economic indicators and market trends...
+                     </div>
+                  )}
+
+                  {priceError && (
+                    <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200 text-center">
+                      Error: {priceError}
+                    </div>
+                  )}
+
+                  {pricePrediction && (
+                    <div className="animate-fade-in p-6 bg-blue-500/20 border border-blue-500 rounded-xl text-center">
+                      <h2 className="text-xl text-blue-300 mb-2">Forecasted Market Price</h2>
+                      <div className="text-5xl font-bold text-white mb-2">
+                        ₹ {pricePrediction.toFixed(2)} <span className="text-2xl font-normal text-gray-300">/ Quintal</span>
+                      </div>
+                      <p className="text-blue-200/80 text-sm">Estimated for next month based on supply & inflation trends.</p>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
