@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI } from '../../constants';
+import { checkAndSwitchNetwork } from '../../utils/network';
 
 export default function ListProductPage() {
     const [formData, setFormData] = useState({
@@ -36,6 +37,14 @@ export default function ListProductPage() {
         setFeedback("Preparing transaction... Please confirm in MetaMask.");
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
+
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setFeedback("Please switch to the correct network.");
+                setIsLoading(false);
+                return;
+            }
+
             const signer = await provider.getSigner();
 
             const productContract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, signer);

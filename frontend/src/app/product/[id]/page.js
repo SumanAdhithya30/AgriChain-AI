@@ -12,6 +12,7 @@ import {
     REGISTRY_CONTRACT_ABI
 } from '../../../constants';
 import Link from 'next/link';
+import { checkAndSwitchNetwork } from '../../../utils/network';
 
 export default function ProductDetailPage() {
     const params = useParams();
@@ -30,7 +31,18 @@ export default function ProductDetailPage() {
         setLoading(true);
         setError('');
         try {
+            if (typeof window.ethereum === 'undefined') {
+                setError("MetaMask is not installed.");
+                return;
+            }
             const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            // Check network
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setError("Please switch to the correct network.");
+                return;
+            }
 
             const productContract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, provider);
             const ownerAddress = await productContract.ownerOf(productId);
@@ -77,10 +89,23 @@ export default function ProductDetailPage() {
             setFeedback("Please enter a valid quantity.");
             return;
         }
+        if (typeof window.ethereum === 'undefined') {
+            setFeedback("MetaMask is not installed.");
+            return;
+        }
+
         setIsBuying(true);
         setFeedback("Preparing purchase...");
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setFeedback("Please switch to the correct network.");
+                setIsBuying(false);
+                return;
+            }
+
             const signer = await provider.getSigner();
             const agreementContract = new ethers.Contract(AGREEMENT_CONTRACT_ADDRESS, AGREEMENT_CONTRACT_ABI, signer);
             setFeedback("Please confirm transaction in MetaMask...");

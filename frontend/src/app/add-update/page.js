@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { TRACEABILITY_CONTRACT_ADDRESS, TRACEABILITY_CONTRACT_ABI } from '../../constants';
+import { checkAndSwitchNetwork } from '../../utils/network';
 
 export default function AddUpdatePage() {
     const [formData, setFormData] = useState({
@@ -29,6 +30,14 @@ export default function AddUpdatePage() {
         setFeedback("Submitting update to the blockchain...");
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
+
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setFeedback("Please switch to the correct network.");
+                setIsLoading(false);
+                return;
+            }
+
             const signer = await provider.getSigner();
             const traceabilityContract = new ethers.Contract(
                 TRACEABILITY_CONTRACT_ADDRESS,

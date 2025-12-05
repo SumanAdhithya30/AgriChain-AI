@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { TRACEABILITY_CONTRACT_ADDRESS, TRACEABILITY_CONTRACT_ABI } from '../../constants';
+import { checkAndSwitchNetwork } from '../../utils/network';
 
 export default function TrackPage() {
     const [productId, setProductId] = useState('');
@@ -16,6 +17,10 @@ export default function TrackPage() {
             setError("Please enter a Product ID.");
             return;
         }
+        if (typeof window.ethereum === 'undefined') {
+            setError("MetaMask is not installed.");
+            return;
+        }
 
         setLoading(true);
         setError('');
@@ -23,6 +28,14 @@ export default function TrackPage() {
 
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
+            
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setError("Please switch to the correct network.");
+                setLoading(false);
+                return;
+            }
+
             const contract = new ethers.Contract(
                 TRACEABILITY_CONTRACT_ADDRESS,
                 TRACEABILITY_CONTRACT_ABI,

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ethers } from 'ethers';
 import { REGISTRY_CONTRACT_ADDRESS, REGISTRY_CONTRACT_ABI } from '../../constants';
+import { checkAndSwitchNetwork } from '../../utils/network';
 
 export default function RegisterPage() {
     // NEW: State for all profile fields
@@ -39,6 +40,14 @@ export default function RegisterPage() {
 
         try {
             const provider = new ethers.BrowserProvider(window.ethereum);
+
+            const isCorrectNetwork = await checkAndSwitchNetwork(provider);
+            if (!isCorrectNetwork) {
+                setFeedback("Please switch to the correct network.");
+                setIsLoading(false);
+                return;
+            }
+
             const signer = await provider.getSigner();
 
             const registryContract = new ethers.Contract(

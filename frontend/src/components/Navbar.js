@@ -30,6 +30,9 @@ export default function Navbar() {
                     </Link>
 
                     {/* We can add a dashboard link here later */}
+                    <Link href="/yield-prediction" className="text-gray-300 hover:text-white transition-colors">
+                        Yield Prediction
+                    </Link>
                     <Link href="/register" className="text-gray-300 hover:text-white transition-colors">
                         Register
                     </Link>
