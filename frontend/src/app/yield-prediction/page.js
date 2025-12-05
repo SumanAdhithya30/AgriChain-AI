@@ -12,6 +12,7 @@ import {
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
 import { locationData } from '../../constants/locationData';
+import { cropData } from '../../constants/cropData';
 
 // Register ChartJS components
 ChartJS.register(
@@ -191,17 +192,25 @@ export default function YieldPrediction() {
                   </select>
                 </div>
 
+
+
                 {/* Crop */}
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">Crop</label>
-                  <input
-                    type="text"
+                  <select
                     name="Crop"
                     value={formData.Crop}
                     onChange={handleChange}
-                    placeholder="e.g. Rice"
                     className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-                  />
+                  >
+                    {cropData.map((category) => (
+                      <optgroup key={category.category} label={category.category}>
+                        {category.crops.map((crop) => (
+                          <option key={crop} value={crop}>{crop}</option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Season */}
