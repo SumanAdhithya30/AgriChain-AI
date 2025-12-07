@@ -46,34 +46,51 @@ export default function MarketplacePage() {
 
             const contract = new ethers.Contract(PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI, provider);
             
-            // --- THIS IS THE CORRECTED LOGIC ---
-            // 1. Get the total number of products using our new custom function
-            const totalProducts = await contract.getTotalProducts();
+            // --- HYBRID FETCH STRATEGY ---
+            let fetchedProducts = [];
+            try {
+                // 1. Try Optimized Batch Fetch
+                const PAGE_SIZE = 100;
+                const productsData = await contract.getAllProductsPaginated(1, PAGE_SIZE);
+                
+                fetchedProducts = productsData.map(p => ({
+                    id: Number(p.id),
+                    owner: p.owner,
+                    name: p.productName,
+                    ipfsImageHash: p.ipfsImageHash,
+                    pricePerUnit: p.pricePerUnit,
+                    quantityAvailable: p.quantityAvailable,
+                    unit: p.unit
+                }));
+            } catch (batchError) {
+                console.warn("Batch fetch failed (contract might not be updated). Falling back to legacy fetch.", batchError);
+                
+                // 2. Fallback: Legacy Iterative Fetch
+                const totalProducts = await contract.getTotalProducts();
+                const productIds = await contract.getProductIds(1, totalProducts);
+                
+                const productPromises = productIds.map(tokenId => 
+                    (async () => {
+                        const owner = await contract.ownerOf(tokenId);
+                        const details = await contract.productDetails(tokenId);
+                        
+                        return {
+                            id: Number(tokenId),
+                            owner: owner,
+                            name: details.productName,
+                            ipfsImageHash: details.ipfsImageHash,
+                            pricePerUnit: details.pricePerUnit,
+                            quantityAvailable: details.quantityAvailable,
+                            unit: details.unit
+                        };
+                    })()
+                );
+                
+                fetchedProducts = await Promise.all(productPromises);
+            }
             
-            // 2. Get the array of all product IDs
-            // Note: For a real app, we'd paginate this, but for now, we'll fetch all.
-            const productIds = await contract.getProductIds(1, totalProducts);
-            
-            const productPromises = productIds.map(tokenId => 
-                (async () => {
-                    const owner = await contract.ownerOf(tokenId);
-                    const details = await contract.productDetails(tokenId);
-                    
-                    return {
-                        id: Number(tokenId),
-                        owner: owner,
-                        name: details.productName,
-                        ipfsImageHash: details.ipfsImageHash,
-                        pricePerUnit: details.pricePerUnit,
-                        quantityAvailable: details.quantityAvailable,
-                        unit: details.unit
-                    };
-                })()
-            );
-            
-            const fetchedProducts = await Promise.all(productPromises);
             setProducts(fetchedProducts);
-            // --- END OF CORRECTION ---
+            // --- END HYBRID STRATEGY ---
 
         } catch (error) {
             console.error("Could not fetch products:", error);

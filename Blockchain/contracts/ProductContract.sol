@@ -99,4 +99,56 @@ contract ProductContract is ERC721, Ownable {
         }
         return ids;
     }
+    struct ProductInfo {
+        uint256 id;
+        address owner;
+        string productName;
+        string ipfsImageHash;
+        uint256 pricePerUnit;
+        uint256 quantityAvailable;
+        string unit;
+        uint256 dateHarvested;
+        address farmer;
+        bool isForSale;
+    }
+
+    function getAllProductsPaginated(uint256 page, uint256 limit) external view returns (ProductInfo[] memory) {
+        uint256 total = allProductIds.length;
+        if(page == 0) page = 1;
+        uint256 startIndex = (page - 1) * limit;
+        
+        if (startIndex >= total) {
+            return new ProductInfo[](0);
+        }
+        
+        uint256 endIndex = startIndex + limit;
+        if (endIndex > total) {
+            endIndex = total;
+        }
+        
+        ProductInfo[] memory batch = new ProductInfo[](endIndex - startIndex);
+        uint256 counter = 0;
+        
+        for (uint256 i = startIndex; i < endIndex; i++) {
+            uint256 tokenId = allProductIds[i];
+            ProductDetails memory details = productDetails[tokenId];
+            address owner = ownerOf(tokenId);
+            
+            batch[counter] = ProductInfo({
+                id: tokenId,
+                owner: owner,
+                productName: details.productName,
+                ipfsImageHash: details.ipfsImageHash,
+                pricePerUnit: details.pricePerUnit,
+                quantityAvailable: details.quantityAvailable,
+                unit: details.unit,
+                dateHarvested: details.dateHarvested,
+                farmer: details.farmer,
+                isForSale: details.isForSale
+            });
+            counter++;
+        }
+        
+        return batch;
+    }
 }
