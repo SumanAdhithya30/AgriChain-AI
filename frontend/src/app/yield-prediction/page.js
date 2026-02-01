@@ -185,15 +185,15 @@ export default function YieldPrediction() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white font-sans">
+    <div className="min-h-screen font-sans"> {/* Removed bg-gray-900 to inherit from layout */}
 
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto"> {/* Increased width for chart */}
-          <div className="bg-gray-800/50 backdrop-blur-lg rounded-xl shadow-2xl p-8 border border-gray-700">
-            <h1 className="text-3xl font-bold mb-6 text-center bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-card backdrop-blur-lg rounded-xl shadow-lg p-8 border border-border">
+            <h1 className="text-3xl font-bold mb-6 text-center text-primary">
               AI Yield Prediction Engine
             </h1>
-            <p className="text-gray-400 text-center mb-8">
+            <p className="text-muted-foreground text-center mb-8">
               Enter your farm details below to get an accurate yield forecast using our XGBoost model.
             </p>
 
@@ -201,12 +201,12 @@ export default function YieldPrediction() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* State */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">State</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">State</label>
                   <select
                     name="State"
                     value={formData.State}
                     onChange={handleStateChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   >
                     {Object.keys(locationData).sort().map((state) => (
                       <option key={state} value={state}>{state}</option>
@@ -216,12 +216,12 @@ export default function YieldPrediction() {
 
                 {/* District */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">District</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">District</label>
                   <select
                     name="District"
                     value={formData.District}
                     onChange={handleChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   >
                     {(locationData[formData.State] || []).sort().map((district) => (
                       <option key={district} value={district}>{district}</option>
@@ -229,16 +229,14 @@ export default function YieldPrediction() {
                   </select>
                 </div>
 
-
-
                 {/* Crop */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Crop</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Crop</label>
                   <select
                     name="Crop"
                     value={formData.Crop}
                     onChange={handleChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   >
                     {cropData.map((category) => (
                       <optgroup key={category.category} label={category.category}>
@@ -252,12 +250,12 @@ export default function YieldPrediction() {
 
                 {/* Season */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Season</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Season</label>
                   <select
                     name="Season"
                     value={formData.Season}
                     onChange={handleChange}
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   >
                     <option value="Kharif">Kharif</option>
                     <option value="Rabi">Rabi</option>
@@ -270,7 +268,7 @@ export default function YieldPrediction() {
 
                 {/* Area */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Area (Hectares)</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Area (Hectares)</label>
                   <input
                     type="number"
                     name="Area"
@@ -278,20 +276,20 @@ export default function YieldPrediction() {
                     onChange={handleChange}
                     placeholder="e.g. 1000"
                     required
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   />
                 </div>
 
-                {/* Rainfall (Optional/If available in model) */}
+                {/* Rainfall */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Rainfall (mm) - Optional</label>
+                  <label className="block text-sm font-medium text-muted-foreground mb-2">Rainfall (mm) - Optional</label>
                   <input
                     type="number"
                     name="Rainfall"
                     value={formData.Rainfall}
                     onChange={handleChange}
                     placeholder="e.g. 850"
-                    className="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
+                    className="w-full bg-secondary border border-border rounded-lg px-4 py-3 text-foreground focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none"
                   />
                 </div>
               </div>
@@ -299,14 +297,14 @@ export default function YieldPrediction() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-4 rounded-lg shadow-lg transform hover:scale-[1.02] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold py-4 rounded-lg shadow-sm transform hover:scale-[1.01] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Analyzing...' : 'Predict Yield'}
               </button>
             </form>
 
             {error && (
-              <div className="mt-6 p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200 text-center">
+              <div className="mt-6 p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-center">
                 {error}
               </div>
             )}
@@ -314,54 +312,54 @@ export default function YieldPrediction() {
             {prediction !== null && (
               <div className="mt-8 animate-fade-in space-y-8">
                 {/* Result Card */}
-                <div className="p-6 bg-green-500/20 border border-green-500 rounded-xl text-center">
-                  <h2 className="text-xl text-green-300 mb-2">Estimated Yield</h2>
-                  <div className="text-5xl font-bold text-white mb-2">
-                    {prediction.toFixed(2)} <span className="text-2xl font-normal text-gray-300">Tonnes/Acre</span>
+                <div className="p-6 bg-primary/10 border border-primary/20 rounded-xl text-center">
+                  <h2 className="text-xl text-primary mb-2">Estimated Yield</h2>
+                  <div className="text-5xl font-bold text-foreground mb-2">
+                    {prediction.toFixed(2)} <span className="text-2xl font-normal text-muted-foreground">Tonnes/Acre</span>
                   </div>
-                  <p className="text-green-200/80 text-sm">Based on historical data and current conditions</p>
+                  <p className="text-primary/80 text-sm">Based on historical data and current conditions</p>
                 </div>
 
                 {/* Chart Section */}
-                <div className="p-6 bg-gray-900/50 rounded-xl border border-gray-700">
+                <div className="p-6 bg-secondary/10 rounded-xl border border-border">
                   <Bar data={chartData} options={chartOptions} />
                 </div>
 
                 {/* Price Prediction Section */}
-                <div className="mt-8 border-t border-gray-700 pt-8">
-                  <h3 className="text-2xl font-bold mb-4 text-center text-blue-400">Market Price Forecast</h3>
-                  <p className="text-gray-400 text-center mb-6">
+                <div className="mt-8 border-t border-border pt-8">
+                  <h3 className="text-2xl font-bold mb-4 text-center text-blue-500">Market Price Forecast</h3>
+                  <p className="text-muted-foreground text-center mb-6">
                     Analyze market trends based on your predicted yield of {prediction.toFixed(2)} Tonnes/Acre.
                   </p>
                   
                   {!pricePrediction && !priceLoading && (
                     <button
                       onClick={handlePriceSubmit}
-                      className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold py-4 rounded-lg shadow-lg transform hover:scale-[1.02] transition-all"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-lg shadow-sm transform hover:scale-[1.01] transition-all"
                     >
                       Analyze Market Price
                     </button>
                   )}
 
                   {priceLoading && (
-                     <div className="text-center text-blue-300 animate-pulse">
+                     <div className="text-center text-blue-500 animate-pulse">
                         Analyzing economic indicators and market trends...
                      </div>
                   )}
 
                   {priceError && (
-                    <div className="p-4 bg-red-500/20 border border-red-500 rounded-lg text-red-200 text-center">
+                    <div className="p-4 bg-destructive/10 border border-destructive rounded-lg text-destructive text-center">
                       Error: {priceError}
                     </div>
                   )}
 
                   {pricePrediction && (
-                    <div className="animate-fade-in p-6 bg-blue-500/20 border border-blue-500 rounded-xl text-center">
-                      <h2 className="text-xl text-blue-300 mb-2">Forecasted Market Price</h2>
-                      <div className="text-5xl font-bold text-white mb-2">
-                        ₹ {pricePrediction.toFixed(2)} <span className="text-2xl font-normal text-gray-300">/ Quintal</span>
+                    <div className="animate-fade-in p-6 bg-blue-500/10 border border-blue-500/20 rounded-xl text-center">
+                      <h2 className="text-xl text-blue-500 mb-2">Forecasted Market Price</h2>
+                      <div className="text-5xl font-bold text-foreground mb-2">
+                        ₹ {pricePrediction.toFixed(2)} <span className="text-2xl font-normal text-muted-foreground">/ Quintal</span>
                       </div>
-                      <p className="text-blue-200/80 text-sm">Estimated for next month based on supply & inflation trends.</p>
+                      <p className="text-blue-500/80 text-sm">Estimated for next month based on supply & inflation trends.</p>
                     </div>
                   )}
                 </div>

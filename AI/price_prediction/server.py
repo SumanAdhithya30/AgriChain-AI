@@ -56,39 +56,73 @@ def predict_yield():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+
+# ===========================
+# 3. FEATURE STORE (HISTORY)
+# ===========================
+HISTORY_FILE = os.path.join(BASE_DIR, 'synthetic_price_data.csv')
+if os.path.exists(HISTORY_FILE):
+    print(f"✅ Loading History Data from {HISTORY_FILE}...")
+    history_df = pd.read_csv(HISTORY_FILE)
+    history_df['Date'] = pd.to_datetime(history_df['Date'])
+    print(f"   Note: Loaded {len(history_df)} records.")
+else:
+    print(f"❌ History Data not found at {HISTORY_FILE}")
+    history_df = pd.DataFrame()
+
 @app.route('/predict-price', methods=['POST'])
 def predict_price():
     if not price_model or not price_scaler: return jsonify({'error': 'Price Model not loaded'}), 500
     try:
         data = request.get_json()
-        # Inputs: Predicted_Yield (from yield model), CPI, Fuel_Price (mocked or user inputs)
-        # We need a sequence of 30 days to predict. For this prototype, we will:
-        # 1. Take current inputs
-        # 2. Duplicate them 30 times to simulate a flat recent history (or you can pass history)
-        # This is a simplification for the demo.
         
-        # Default mock economic indicators if not provided
-        cpi = data.get('CPI', 150.0)
-        fuel = data.get('Fuel_Price', 100.0)
-        pred_yield = data.get('Predicted_Yield', 2.0)
-        current_price = data.get('Current_Price', 2000.0) # We need a starting point
+        # User inputs or defaults
+        crop = data.get('Crop', 'Rice')
+        state = data.get('State', 'Tamil Nadu')
+        district = data.get('District', 'Madurai')
         
-        # Prepare input vector: [Yield, CPI, Fuel, Price]
-        # Shape: (1, 30, 4)
-        input_features = np.array([[pred_yield, cpi, fuel, current_price]] * 30)
+        # 1. Fetch Historical Data (Last 30 days)
+        # We filter by location and crop
+        mask = (history_df['State'] == state) & \
+               (history_df['District'] == district) & \
+               (history_df['Crop'] == crop)
         
-        # Scale
-        # Reshape to (30, 4) for scaling, then back to (1, 30, 4)
+        filtered_df = history_df[mask].sort_values('Date')
+        
+        if filtered_df.empty:
+            # Fallback if no history found: Use the old mock strategy
+            print(f"⚠️ No history for {crop} in {district}. Using mock data.")
+            cpi = data.get('CPI', 150.0)
+            fuel = data.get('Fuel_Price', 100.0)
+            pred_yield = data.get('Predicted_Yield', 2.0)
+            current_price = data.get('Current_Price', 2000.0)
+            input_features = np.array([[pred_yield, cpi, fuel, current_price]] * 30)
+        else:
+            # Use actual last 30 records
+            # Columns needed: Yield_Tonnes, CPI, Fuel_Price, Market_Price
+            # Verify column names in CSV: Yield_Tonnes, CPI, Fuel_Price, Market_Price
+            required_cols = ['Yield_Tonnes', 'CPI', 'Fuel_Price', 'Market_Price']
+            
+            recent_data = filtered_df.tail(30)[required_cols].values
+            
+            # If we have less than 30 days, we pad with the first available day
+            if len(recent_data) < 30:
+                print(f"⚠️ Insufficient history ({len(recent_data)} days). Padding data.")
+                padding = np.tile(recent_data[0], (30 - len(recent_data), 1))
+                input_features = np.vstack([padding, recent_data])
+            else:
+                input_features = recent_data
+        
+        # 2. Scale
+        # Shape: (30, 4) -> Scaled -> Reshape to (1, 30, 4) for LSTM
         scaled_input = price_scaler.transform(input_features)
         final_input = scaled_input.reshape(1, 30, 4)
         
-        # Predict
+        # 3. Predict
         predicted_scaled_price = price_model.predict(final_input)
         
-        # Inverse transform
-        # We need to construct a dummy array aimed at inverse_transform shape
-        # The scaler expects 4 columns. We only have the 4th column (Price) output.
-        # Trick: Create a dummy row with 0s and the predicted price at the end
+        # 4. Inverse Transform
+        # Construct dummy row for scaler inverse
         dummy_row = np.zeros((1, 4))
         dummy_row[0, 3] = predicted_scaled_price[0, 0]
         
@@ -98,10 +132,12 @@ def predict_price():
         return jsonify({
             'predicted_price': float(final_price),
             'currency': 'INR',
-            'unit': 'Quintal'
+            'unit': 'Quintal',
+            'based_on': f"30-day history for {crop} in {district}"
         })
         
     except Exception as e:
+        print(f"Error: {str(e)}")
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':

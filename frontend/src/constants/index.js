@@ -721,6 +721,82 @@ export const PRODUCT_CONTRACT_ABI = [
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "page",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "limit",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAllProductsPaginated",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "uint256",
+              "name": "id",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "owner",
+              "type": "address"
+            },
+            {
+              "internalType": "string",
+              "name": "productName",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "ipfsImageHash",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "pricePerUnit",
+              "type": "uint256"
+            },
+            {
+              "internalType": "uint256",
+              "name": "quantityAvailable",
+              "type": "uint256"
+            },
+            {
+              "internalType": "string",
+              "name": "unit",
+              "type": "string"
+            },
+            {
+              "internalType": "uint256",
+              "name": "dateHarvested",
+              "type": "uint256"
+            },
+            {
+              "internalType": "address",
+              "name": "farmer",
+              "type": "address"
+            },
+            {
+              "internalType": "bool",
+              "name": "isForSale",
+              "type": "bool"
+            }
+          ],
+          "internalType": "struct ProductContract.ProductInfo[]",
+          "name": "",
+          "type": "tuple[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
     }
   ];
 export const AGREEMENT_CONTRACT_ABI = [

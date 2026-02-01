@@ -66,14 +66,16 @@ export default function ConnectWallet() {
   return (
     <div>
       {account ? (
-        <div className="p-4 bg-green-800 border border-green-500 rounded-lg text-white">
-          <p className="font-bold">Wallet Connected:</p>
-          <p className="font-mono text-sm break-all">{account}</p>
+        <div className="flex items-center gap-2 px-4 py-2 bg-card border border-border rounded-full shadow-sm">
+          <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+          <p className="text-sm font-medium text-foreground font-mono">
+            {account.slice(0, 6)}...{account.slice(-4)}
+          </p>
         </div>
       ) : (
         <button
           onClick={connectWallet}
-          className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 transition-colors"
+          className="px-4 py-2 bg-primary text-primary-foreground text-sm font-medium rounded-full shadow-sm hover:bg-primary/90 transition-colors"
         >
           Connect Wallet
         </button>
