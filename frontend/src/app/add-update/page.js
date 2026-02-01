@@ -69,41 +69,41 @@ export default function AddUpdatePage() {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-900 text-white">
-            <div className="w-full max-w-lg p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold text-center">Add Tracking Update</h1>
-                <p className="text-center text-gray-400">(Logistics Admin Panel)</p>
+        <div className="flex min-h-screen flex-col items-center justify-center p-8 font-sans">
+            <div className="w-full max-w-lg p-8 space-y-6 bg-card border border-border rounded-xl shadow-lg">
+                <h1 className="text-3xl font-bold text-center text-foreground">Add Tracking Update</h1>
+                <p className="text-center text-muted-foreground">(Logistics Admin Panel)</p>
 
                 <form onSubmit={handleAddUpdate} className="space-y-4">
                     <div>
-                        <label htmlFor="productId" className="block text-sm font-medium">Product ID</label>
+                        <label htmlFor="productId" className="block text-sm font-medium text-foreground mb-1">Product ID</label>
                         <input
                             id="productId"
                             name="productId"
                             type="number"
                             value={formData.productId}
                             onChange={handleInputChange}
-                            className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md"
+                            className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none"
                             placeholder="e.g., 1"
                             disabled={isLoading}
                         />
                     </div>
                     <div>
-                        <label htmlFor="location" className="block text-sm font-medium">Current Location</label>
+                        <label htmlFor="location" className="block text-sm font-medium text-foreground mb-1">Current Location</label>
                         <input
                             id="location"
                             name="location"
                             type="text"
                             value={formData.location}
                             onChange={handleInputChange}
-                            className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md"
+                            className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none"
                             placeholder="e.g., Mumbai Warehouse"
                             disabled={isLoading}
                         />
                     </div>
                     <div>
-                        <label htmlFor="status" className="block text-sm font-medium">Status</label>
-                         <select id="status" name="status" value={formData.status} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" disabled={isLoading}>
+                        <label htmlFor="status" className="block text-sm font-medium text-foreground mb-1">Status</label>
+                         <select id="status" name="status" value={formData.status} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" disabled={isLoading}>
                             <option>In Transit</option>
                             <option>Warehouse</option>
                             <option>Out for Delivery</option>
@@ -112,7 +112,7 @@ export default function AddUpdatePage() {
                     </div>
                     <button
                         type="submit"
-                        className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500"
+                        className="w-full px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors"
                         disabled={isLoading}
                     >
                         {isLoading ? "Submitting..." : "Add Update"}
@@ -120,9 +120,9 @@ export default function AddUpdatePage() {
                 </form>
 
                 {feedback && (
-                    <p className="text-center text-sm text-gray-300 mt-4">{feedback}</p>
+                    <p className="text-center text-sm text-muted-foreground mt-4 p-2 bg-secondary/50 rounded-md border border-border">{feedback}</p>
                 )}
             </div>
-        </main>
+        </div>
     );
 }

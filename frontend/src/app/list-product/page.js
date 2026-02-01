@@ -71,33 +71,33 @@ export default function ListProductPage() {
     };
 
     return (
-        <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-900 text-white">
-            <div className="w-full max-w-lg p-8 space-y-6 bg-gray-800 rounded-lg shadow-lg">
-                <h1 className="text-3xl font-bold text-center">List a New Product</h1>
-                <p className="text-center text-gray-400">Register as a Farmer to list a product.</p>
+        <div className="flex min-h-screen flex-col items-center justify-center p-8 font-sans">
+            <div className="w-full max-w-lg p-8 space-y-6 bg-card border border-border rounded-xl shadow-lg">
+                <h1 className="text-3xl font-bold text-center text-foreground">List a New Product</h1>
+                <p className="text-center text-muted-foreground">Register as a Farmer to list a product.</p>
                 <form onSubmit={handleListProduct} className="space-y-4">
                     <div>
-                        <label htmlFor="productName" className="block text-sm font-medium">Product Name</label>
-                        <input name="productName" type="text" value={formData.productName} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., Organic Tomatoes" disabled={isLoading} />
+                        <label htmlFor="productName" className="block text-sm font-medium text-foreground mb-1">Product Name</label>
+                        <input name="productName" type="text" value={formData.productName} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" placeholder="e.g., Organic Tomatoes" disabled={isLoading} />
                     </div>
                     
                     <div>
-                        <label htmlFor="ipfsHash" className="block text-sm font-medium">Image IPFS Hash</label>
-                        <input name="ipfsHash" type="text" value={formData.ipfsHash} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., Qm..." disabled={isLoading} />
+                        <label htmlFor="ipfsHash" className="block text-sm font-medium text-foreground mb-1">Image IPFS Hash</label>
+                        <input name="ipfsHash" type="text" value={formData.ipfsHash} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" placeholder="e.g., Qm..." disabled={isLoading} />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label htmlFor="pricePerUnit" className="block text-sm font-medium">Price (per Unit)</label>
-                            <input name="pricePerUnit" type="text" value={formData.pricePerUnit} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., 0.01 ETH" disabled={isLoading} />
+                            <label htmlFor="pricePerUnit" className="block text-sm font-medium text-foreground mb-1">Price (per Unit)</label>
+                            <input name="pricePerUnit" type="text" value={formData.pricePerUnit} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" placeholder="e.g., 0.01 ETH" disabled={isLoading} />
                         </div>
                         <div>
-                            <label htmlFor="quantity" className="block text-sm font-medium">Quantity</label>
-                            <input name="quantity" type="number" value={formData.quantity} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" placeholder="e.g., 1000" disabled={isLoading} />
+                            <label htmlFor="quantity" className="block text-sm font-medium text-foreground mb-1">Quantity</label>
+                            <input name="quantity" type="number" value={formData.quantity} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" placeholder="e.g., 1000" disabled={isLoading} />
                         </div>
                         <div>
-                            <label htmlFor="unit" className="block text-sm font-medium">Unit</label>
-                            <select name="unit" value={formData.unit} onChange={handleInputChange} className="mt-1 w-full px-3 py-2 text-white bg-gray-700 border border-gray-600 rounded-md" disabled={isLoading}>
+                            <label htmlFor="unit" className="block text-sm font-medium text-foreground mb-1">Unit</label>
+                            <select name="unit" value={formData.unit} onChange={handleInputChange} className="w-full px-3 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none" disabled={isLoading}>
                                 <option value="kg">kg</option>
                                 <option value="ton">ton</option>
                                 <option value="piece">piece</option>
@@ -106,13 +106,13 @@ export default function ListProductPage() {
                         </div>
                     </div>
                     
-                    <button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500" disabled={isLoading}>
+                    <button type="submit" className="w-full px-4 py-2 font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors" disabled={isLoading}>
                         {isLoading ? "Listing Product..." : "List Product"}
                     </button>
                 </form>
 
-                {feedback && <p className="text-center text-sm text-gray-300 mt-4">{feedback}</p>}
+                {feedback && <p className="text-center text-sm text-muted-foreground mt-4 p-2 bg-secondary/50 rounded-md border border-border">{feedback}</p>}
             </div>
-        </main>
+        </div>
     );
 }

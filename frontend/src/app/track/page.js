@@ -64,34 +64,34 @@ export default function TrackPage() {
     };
 
     return (
-        <main className="min-h-screen p-8 bg-gray-900 text-white">
+        <div className="min-h-screen p-8 font-sans">
             <div className="container mx-auto max-w-2xl">
-                <h1 className="text-4xl font-bold text-center mb-8">Track Your Product</h1>
+                <h1 className="text-4xl font-bold text-center mb-8 text-foreground">Track Your Product</h1>
                 <form onSubmit={handleTrackProduct} className="flex gap-4 mb-12">
                     <input
                         type="number"
                         value={productId}
                         onChange={(e) => setProductId(e.target.value)}
                         placeholder="Enter Product ID (e.g., 1)"
-                        className="grow px-4 py-2 text-white bg-gray-700 border border-gray-600 rounded-md"
+                        className="grow px-4 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none placeholder:text-muted-foreground"
                     />
-                    <button type="submit" disabled={loading} className="px-6 py-2 font-semibold text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-gray-500">
+                    <button type="submit" disabled={loading} className="px-6 py-2 font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors">
                         {loading ? "Searching..." : "Track"}
                     </button>
                 </form>
 
-                {error && <p className="text-center text-red-400">{error}</p>}
+                {error && <p className="text-center text-destructive mb-8">{error}</p>}
 
                 {history.length > 0 && (
                     <div className="space-y-4">
-                        <h2 className="text-2xl font-bold">History for Product #{productId}</h2>
-                        <div className="border-l-2 border-gray-700 pl-6 space-y-8">
+                        <h2 className="text-2xl font-bold text-foreground">History for Product #{productId}</h2>
+                        <div className="border-l-2 border-border pl-6 space-y-8 ml-3">
                             {history.map((update, index) => (
                                 <div key={index} className="relative">
-                                    <div className="absolute -left-8 top-1 w-4 h-4 bg-blue-500 rounded-full"></div>
-                                    <p className="font-bold text-lg text-blue-300">{update.status}</p>
-                                    <p className="text-gray-300">{update.location}</p>
-                                    <p className="text-sm text-gray-500 mt-1">
+                                    <div className="absolute -left-[31px] top-1 w-4 h-4 bg-primary rounded-full border-4 border-background"></div>
+                                    <p className="font-bold text-lg text-primary">{update.status}</p>
+                                    <p className="text-foreground">{update.location}</p>
+                                    <p className="text-sm text-muted-foreground mt-1">
                                         {new Date(update.timestamp * 1000).toLocaleString()}
                                     </p>
                                 </div>
@@ -100,6 +100,6 @@ export default function TrackPage() {
                     </div>
                 )}
             </div>
-        </main>
+        </div>
     );
 }
