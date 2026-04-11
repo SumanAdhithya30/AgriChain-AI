@@ -75,6 +75,13 @@ contract ProductContract is ERC721, Ownable {
             product.isForSale = false;
         }
     }
+
+    function restoreQuantity(uint256 _productId, uint256 _amount) external {
+        require(msg.sender == agreementContractAddress, "Only AgreementContract can call this");
+        ProductDetails storage product = productDetails[_productId];
+        product.quantityAvailable += _amount;
+        product.isForSale = true;
+    }
     
     function setAgreementContract(address _address) external onlyOwner {
         agreementContractAddress = _address;

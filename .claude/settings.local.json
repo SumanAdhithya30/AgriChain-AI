@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find D:/Projects/Personals/Agrichain/AgriChain-AI -maxdepth 3 -type f \\\\\\(-name .env* -o -name Dockerfile* -o -name docker-compose* -o -name *.yml -o -name *.yaml -o -name requirements.txt -o -name setup.py \\\\\\))",
+      "Bash(find D:/Projects/Personals/Agrichain/AgriChain-AI -type f -not -path */node_modules/* -not -path */.next/* -not -path */.git/* -not -path */artifacts/* -not -path */cache/*)",
+      "Bash(npx hardhat:*)",
+      "Bash(python -c \"import flask, flask_cors, joblib, pandas, numpy; print\\('Core deps OK'\\)\")",
+      "Bash(python -c \"from tensorflow.keras.models import load_model; print\\('TensorFlow OK'\\)\")",
+      "Bash(python -c ':*)"
+    ]
+  }
+}

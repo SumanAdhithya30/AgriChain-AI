@@ -7,15 +7,43 @@ import { PRODUCT_CONTRACT_ADDRESS, PRODUCT_CONTRACT_ABI } from '../../constants'
 import { checkAndSwitchNetwork } from '../../utils/network';
 import { cn } from "@/lib/utils";
 
+const IPFS_GATEWAY = 'https://ipfs.io/ipfs/';
+
+function resolveImageSrc(hash) {
+    if (!hash || hash.length < 5) return null;
+    if (hash.startsWith('http://') || hash.startsWith('https://')) return hash;
+    return `${IPFS_GATEWAY}${hash}`;
+}
+
+function ProductImage({ hash, alt, className }) {
+    const [imgError, setImgError] = useState(false);
+    const src = resolveImageSrc(hash);
+
+    if (src && !imgError) {
+        return (
+            <img
+                src={src}
+                alt={alt}
+                className={`w-full h-full object-cover ${className || ''}`}
+                onError={() => setImgError(true)}
+            />
+        );
+    }
+    return (
+        <div className={`w-full h-full flex flex-col items-center justify-center bg-secondary/20 ${className || ''}`}>
+            <span className="text-5xl mb-2">🌾</span>
+            <span className="text-xs text-muted-foreground">No image</span>
+        </div>
+    );
+}
+
 function ProductCard({ product }) {
     const formattedPrice = product?.pricePerUnit ? ethers.formatEther(product.pricePerUnit) : 'N/A';
 
     return (
         <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:-translate-y-1 h-full flex flex-col group">
-            <div className="bg-secondary/20 w-full h-48 flex items-center justify-center relative overflow-hidden">
-                {/* Placeholder for image */}
-                <div className="absolute inset-0 bg-secondary/10 group-hover:bg-secondary/20 transition-colors"></div>
-                <p className="text-muted-foreground text-xs break-all px-2 relative z-10">{product.ipfsImageHash || "No Image"}</p>
+            <div className="w-full h-48 relative overflow-hidden">
+                <ProductImage hash={product.ipfsImageHash} alt={product.name} />
             </div>
             <div className="p-5 flex flex-col flex-1">
                 <h2 className="text-lg font-bold mb-2 text-card-foreground group-hover:text-primary transition-colors">{product.name}</h2>

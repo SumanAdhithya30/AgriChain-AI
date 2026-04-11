@@ -41,5 +41,6 @@ def predict():
         return jsonify({'error': str(e)}), 400
 
 if __name__ == '__main__':
-    print("Starting Flask server on port 5001...", flush=True)
-    app.run(debug=True, port=5001)
+    print("Starting Flask server on port 5002...", flush=True)
+    print("NOTE: Use price_prediction/server.py (port 5001) for the unified server.", flush=True)
+    app.run(debug=True, port=5002)

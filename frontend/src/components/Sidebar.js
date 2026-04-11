@@ -13,7 +13,9 @@ import {
   LogOut,
   Leaf,
   Truck,
-  User
+  User,
+  FileText,
+  ShieldAlert,
 } from "lucide-react";
 
 const sidebarItems = [
@@ -28,7 +30,7 @@ const sidebarItems = [
     items: [
       { name: "Marketplace", href: "/marketplace", icon: Store },
       { name: "My Listings", href: "/list-product", icon: ClipboardList },
-      { name: "Orders", href: "/track", icon: Truck }, // Using track as Orders for now
+      { name: "My Agreements", href: "/agreements", icon: FileText },
     ],
   },
   {
@@ -41,13 +43,14 @@ const sidebarItems = [
   {
     category: "Account",
     items: [
-      { name: "Register", href: "/register", icon: User },
+      { name: "My Profile", href: "/register", icon: User },
     ],
   },
   {
     category: "Admin",
     items: [
-       { name: "Add Update", href: "/add-update", icon: LineChart }, // Admin only technically
+       { name: "Add Update", href: "/add-update", icon: LineChart },
+       { name: "Dispute Resolution", href: "/admin", icon: ShieldAlert },
     ]
   }
 ];

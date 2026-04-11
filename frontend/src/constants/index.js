@@ -822,6 +822,31 @@ export const AGREEMENT_CONTRACT_ABI = [
         },
         {
           "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "refundAmount",
+          "type": "uint256"
+        }
+      ],
+      "name": "AgreementCancelled",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "agreementId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
           "internalType": "uint256",
           "name": "productId",
           "type": "uint256"
@@ -853,6 +878,44 @@ export const AGREEMENT_CONTRACT_ABI = [
         }
       ],
       "name": "DeliveryConfirmed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "agreementId",
+          "type": "uint256"
+        },
+        {
+          "indexed": false,
+          "internalType": "bool",
+          "name": "refundedBuyer",
+          "type": "bool"
+        }
+      ],
+      "name": "DisputeResolved",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "agreementId",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "buyer",
+          "type": "address"
+        }
+      ],
+      "name": "DisputeRaised",
       "type": "event"
     },
     {
@@ -924,9 +987,27 @@ export const AGREEMENT_CONTRACT_ABI = [
           "internalType": "enum AgreementContract.AgreementState",
           "name": "state",
           "type": "uint8"
+        },
+        {
+          "internalType": "uint256",
+          "name": "createdAt",
+          "type": "uint256"
         }
       ],
       "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agreementId",
+          "type": "uint256"
+        }
+      ],
+      "name": "cancelAgreement",
+      "outputs": [],
+      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -961,6 +1042,86 @@ export const AGREEMENT_CONTRACT_ABI = [
       "type": "function"
     },
     {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agreementId",
+          "type": "uint256"
+        }
+      ],
+      "name": "getAgreement",
+      "outputs": [
+        {
+          "components": [
+            { "internalType": "uint256", "name": "agreementId", "type": "uint256" },
+            { "internalType": "uint256", "name": "productId", "type": "uint256" },
+            { "internalType": "uint256", "name": "quantityPurchased", "type": "uint256" },
+            { "internalType": "address", "name": "buyer", "type": "address" },
+            { "internalType": "address", "name": "seller", "type": "address" },
+            { "internalType": "uint256", "name": "totalValue", "type": "uint256" },
+            { "internalType": "enum AgreementContract.AgreementState", "name": "state", "type": "uint8" },
+            { "internalType": "uint256", "name": "createdAt", "type": "uint256" }
+          ],
+          "internalType": "struct AgreementContract.Agreement",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_buyer",
+          "type": "address"
+        }
+      ],
+      "name": "getAgreementsByBuyer",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_seller",
+          "type": "address"
+        }
+      ],
+      "name": "getAgreementsBySeller",
+      "outputs": [
+        {
+          "internalType": "uint256[]",
+          "name": "",
+          "type": "uint256[]"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "owner",
+      "outputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "inputs": [],
       "name": "productContract",
       "outputs": [
@@ -981,9 +1142,53 @@ export const AGREEMENT_CONTRACT_ABI = [
           "type": "uint256"
         }
       ],
+      "name": "raiseDispute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agreementId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bool",
+          "name": "_refundBuyer",
+          "type": "bool"
+        }
+      ],
+      "name": "resolveDispute",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "_agreementId",
+          "type": "uint256"
+        }
+      ],
       "name": "settlePayment",
       "outputs": [],
       "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "totalAgreements",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     }
   ];

@@ -64,42 +64,47 @@ export default function TrackPage() {
     };
 
     return (
-        <div className="min-h-screen p-8 font-sans">
-            <div className="container mx-auto max-w-2xl">
-                <h1 className="text-4xl font-bold text-center mb-8 text-foreground">Track Your Product</h1>
-                <form onSubmit={handleTrackProduct} className="flex gap-4 mb-12">
+        <div className="max-w-2xl mx-auto space-y-6">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight text-foreground">Track a Product</h1>
+                <p className="text-muted-foreground mt-1">View the full supply chain history for any product on-chain.</p>
+            </div>
+
+            <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+                <form onSubmit={handleTrackProduct} className="flex gap-3">
                     <input
                         type="number"
                         value={productId}
                         onChange={(e) => setProductId(e.target.value)}
                         placeholder="Enter Product ID (e.g., 1)"
-                        className="grow px-4 py-2 text-foreground bg-secondary border border-border rounded-md focus:ring-2 focus:ring-primary outline-none placeholder:text-muted-foreground"
+                        className="grow px-4 py-2 text-foreground bg-secondary border border-border rounded-lg focus:ring-2 focus:ring-primary outline-none placeholder:text-muted-foreground transition-colors"
                     />
-                    <button type="submit" disabled={loading} className="px-6 py-2 font-semibold text-primary-foreground bg-primary rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors">
+                    <button type="submit" disabled={loading} className="px-6 py-2 font-semibold text-primary-foreground bg-primary rounded-lg hover:bg-primary/90 disabled:opacity-50 transition-colors">
                         {loading ? "Searching..." : "Track"}
                     </button>
                 </form>
-
-                {error && <p className="text-center text-destructive mb-8">{error}</p>}
-
-                {history.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-2xl font-bold text-foreground">History for Product #{productId}</h2>
-                        <div className="border-l-2 border-border pl-6 space-y-8 ml-3">
-                            {history.map((update, index) => (
-                                <div key={index} className="relative">
-                                    <div className="absolute -left-[31px] top-1 w-4 h-4 bg-primary rounded-full border-4 border-background"></div>
-                                    <p className="font-bold text-lg text-primary">{update.status}</p>
-                                    <p className="text-foreground">{update.location}</p>
-                                    <p className="text-sm text-muted-foreground mt-1">
-                                        {new Date(update.timestamp * 1000).toLocaleString()}
-                                    </p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                )}
+                {error && <p className="text-sm text-destructive mt-3">{error}</p>}
             </div>
+
+            {history.length > 0 && (
+                <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+                    <h2 className="text-lg font-semibold text-foreground mb-6">
+                        History for Product <span className="text-primary">#{productId}</span>
+                    </h2>
+                    <div className="border-l-2 border-border pl-6 space-y-6 ml-2">
+                        {history.map((update, index) => (
+                            <div key={index} className="relative">
+                                <div className="absolute -left-[29px] top-1 w-3.5 h-3.5 bg-primary rounded-full border-4 border-card" />
+                                <p className="font-semibold text-foreground">{update.status}</p>
+                                <p className="text-muted-foreground text-sm">{update.location}</p>
+                                <p className="text-xs text-muted-foreground/60 mt-0.5">
+                                    {new Date(update.timestamp * 1000).toLocaleString()}
+                                </p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

@@ -5,4 +5,4 @@
 For AI
 1) cd AI
 2) cd yield_prediction 
-3) python3 server.py
+3) python server.py
