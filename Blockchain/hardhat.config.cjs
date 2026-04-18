@@ -11,6 +11,13 @@ require("dotenv").config(); // This line loads your .env file
 module.exports = {
   solidity: "0.8.24",
   networks: {
+    hardhat: {
+      blockGasLimit: 30000000,
+    },
+    localhost: {
+      url: "http://127.0.0.1:8545",
+      gas: 12000000,
+    },
     amoy: {
       // This picks up the RPC URL from your .env file
       url: process.env.AMOY_RPC_URL || "",

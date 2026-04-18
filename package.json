@@ -1,0 +1,15 @@
+{
+  "name": "agrichain-ai",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names \"CHAIN,DEPLOY,FRONTEND,AI\" --prefix-colors \"yellow,magenta,cyan,green\" \"npm run dev:blockchain\" \"npm run dev:deploy\" \"npm run dev:frontend\" \"npm run dev:ai\"",
+    "dev:blockchain": "cd Blockchain && npx hardhat node",
+    "dev:deploy": "node scripts/wait-and-deploy.mjs",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:ai": "cd AI && python server.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

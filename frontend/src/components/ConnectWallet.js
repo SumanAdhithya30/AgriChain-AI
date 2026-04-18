@@ -12,10 +12,12 @@ export default function ConnectWallet() {
   const [account, setAccount] = useState(null);
   const [userProfile, setUserProfile] = useState(null); // { name, role } | null = not registered
   const [checking, setChecking] = useState(false);
+  const [contractError, setContractError] = useState(false);
   const router = useRouter();
 
   const fetchRegistration = async (address, provider) => {
     try {
+      setContractError(false);
       const registry = new ethers.Contract(REGISTRY_CONTRACT_ADDRESS, REGISTRY_CONTRACT_ABI, provider);
       const user = await registry.users(address);
       const isRegistered = user[2];
@@ -25,6 +27,7 @@ export default function ConnectWallet() {
         setUserProfile(null);
       }
     } catch {
+      setContractError(true);
       setUserProfile(null);
     }
   };
@@ -80,6 +83,15 @@ export default function ConnectWallet() {
       >
         {checking ? 'Connecting...' : 'Connect Wallet'}
       </button>
+    );
+  }
+
+  if (contractError) {
+    return (
+      <span className="flex items-center gap-2 px-3 py-1.5 bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium rounded-full" title="Run: npm run dev:deploy">
+        <span className="w-2 h-2 rounded-full bg-red-500" />
+        Contracts not deployed
+      </span>
     );
   }
 
